@@ -50,6 +50,8 @@ export interface UserSettings {
   user_id: string;
   again_interval_hours: number;
   hard_interval_hours: number;
+  good_interval_hours: number;
+  easy_interval_hours: number;
   max_new_cards_per_day: number;
   theme: string;
   created_at: string;

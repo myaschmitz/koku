@@ -57,7 +57,9 @@ CREATE TABLE review_logs (
 CREATE TABLE user_settings (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   again_interval_hours INTEGER DEFAULT 24,
-  hard_interval_hours INTEGER DEFAULT 72,
+  hard_interval_hours INTEGER DEFAULT 48,
+  good_interval_hours INTEGER DEFAULT 120,
+  easy_interval_hours INTEGER DEFAULT 192,
   max_new_cards_per_day INTEGER DEFAULT 20,
   theme TEXT DEFAULT 'system',    -- 'light', 'dark', or 'system'
   created_at TIMESTAMPTZ DEFAULT now(),

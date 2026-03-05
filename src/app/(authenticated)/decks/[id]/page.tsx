@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
-import type { Card, Deck } from "@/lib/types";
+import type { Card, Deck, Tag } from "@/lib/types";
 
 const STATE_LABELS = ["New", "Learning", "Review", "Relearning"];
 const STATE_COLORS = [
@@ -21,6 +21,7 @@ export default function DeckDetailPage() {
   const supabase = createClient();
   const [deck, setDeck] = useState<Deck | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
+  const [cardTagsMap, setCardTagsMap] = useState<Record<string, Tag[]>>({});
   const [loading, setLoading] = useState(true);
   const [dueCount, setDueCount] = useState(0);
 
@@ -44,6 +45,33 @@ export default function DeckDetailPage() {
         .select("*", { count: "exact", head: true })
         .eq("deck_id", deckId)
         .lte("due", now);
+
+      // Fetch tags for all cards in this deck
+      if (cardsData && cardsData.length > 0) {
+        const cardIds = cardsData.map((c) => c.id);
+        const { data: cardTagLinks } = await supabase
+          .from("card_tags")
+          .select("card_id, tag_id")
+          .in("card_id", cardIds);
+
+        if (cardTagLinks && cardTagLinks.length > 0) {
+          const tagIds = [...new Set(cardTagLinks.map((l) => l.tag_id))];
+          const { data: tagsData } = await supabase
+            .from("tags")
+            .select("*")
+            .in("id", tagIds);
+
+          const tagsById = new Map((tagsData ?? []).map((t) => [t.id, t]));
+          const map: Record<string, Tag[]> = {};
+          for (const link of cardTagLinks) {
+            const tag = tagsById.get(link.tag_id);
+            if (tag) {
+              (map[link.card_id] ??= []).push(tag);
+            }
+          }
+          setCardTagsMap(map);
+        }
+      }
 
       setDeck(deckData);
       setCards(cardsData ?? []);
@@ -138,12 +166,20 @@ export default function DeckDetailPage() {
                   >
                     {card.front_title}
                   </Link>
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATE_COLORS[card.state]}`}
                     >
                       {STATE_LABELS[card.state]}
                     </span>
+                    {(cardTagsMap[card.id] ?? []).map((tag) => (
+                      <span
+                        key={tag.id}
+                        className="rounded-full bg-slate-100 dark:bg-slate-700 px-2 py-0.5 text-xs text-slate-600 dark:text-slate-400"
+                      >
+                        {tag.name}
+                      </span>
+                    ))}
                     <span className="text-xs text-slate-400">
                       Due: {new Date(card.due).toLocaleDateString()}
                     </span>

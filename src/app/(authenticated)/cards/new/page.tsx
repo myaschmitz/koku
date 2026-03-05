@@ -42,18 +42,29 @@ function NewCardContent() {
     back_content: string;
     front_images: string[];
     back_images: string[];
+    tags: { id: string; name: string }[];
   }) => {
     if (!userId || !deckId) return;
 
-    const { error } = await supabase.from("cards").insert({
-      deck_id: deckId,
-      user_id: userId,
-      front_title: data.front_title,
-      front_detail: data.front_detail || null,
-      front_images: data.front_images,
-      back_content: data.back_content,
-      back_images: data.back_images,
-    });
+    const { data: card, error } = await supabase
+      .from("cards")
+      .insert({
+        deck_id: deckId,
+        user_id: userId,
+        front_title: data.front_title,
+        front_detail: data.front_detail || null,
+        front_images: data.front_images,
+        back_content: data.back_content,
+        back_images: data.back_images,
+      })
+      .select("id")
+      .single();
+
+    if (!error && card && data.tags.length > 0) {
+      await supabase.from("card_tags").insert(
+        data.tags.map((tag) => ({ card_id: card.id, tag_id: tag.id }))
+      );
+    }
 
     if (!error) {
       router.push(`/decks/${deckId}`);

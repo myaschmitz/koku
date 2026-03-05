@@ -45,6 +45,14 @@ export function scheduleCard(
     result.card.due = new Date(
       now.getTime() + settings.hard_interval_hours * 60 * 60 * 1000
     );
+  } else if (rating === Rating.Good) {
+    const fsrsMs = result.card.due.getTime() - now.getTime();
+    const customMs = settings.good_interval_hours * 60 * 60 * 1000;
+    result.card.due = new Date(now.getTime() + Math.max(fsrsMs, customMs));
+  } else if (rating === Rating.Easy) {
+    const fsrsMs = result.card.due.getTime() - now.getTime();
+    const customMs = settings.easy_interval_hours * 60 * 60 * 1000;
+    result.card.due = new Date(now.getTime() + Math.max(fsrsMs, customMs));
   }
 
   return result;
@@ -75,10 +83,16 @@ export function getSchedulingPreview(
       settings.hard_interval_hours * 60 * 60 * 1000
     ),
     [Rating.Good]: formatInterval(
-      scheduling[Rating.Good].card.due.getTime() - now.getTime()
+      Math.max(
+        scheduling[Rating.Good].card.due.getTime() - now.getTime(),
+        settings.good_interval_hours * 60 * 60 * 1000
+      )
     ),
     [Rating.Easy]: formatInterval(
-      scheduling[Rating.Easy].card.due.getTime() - now.getTime()
+      Math.max(
+        scheduling[Rating.Easy].card.due.getTime() - now.getTime(),
+        settings.easy_interval_hours * 60 * 60 * 1000
+      )
     ),
   } as Record<Grade, string>;
 }

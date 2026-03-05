@@ -2,13 +2,16 @@
 
 import { useState, useCallback, useRef } from "react";
 import { ImageUpload, type ImageUploadHandle } from "@/components/image-upload";
+import { TagInput } from "@/components/tag-input";
+import type { Tag } from "@/lib/types";
 
-interface CardFormData {
+export interface CardFormData {
   front_title: string;
   front_detail: string;
   back_content: string;
   front_images: string[];
   back_images: string[];
+  tags: Tag[];
 }
 
 interface CardFormProps {
@@ -25,6 +28,7 @@ export function CardForm({ initial, onSubmit, submitLabel, userId, cardId }: Car
   const [backContent, setBackContent] = useState(initial?.back_content ?? "");
   const [frontImages, setFrontImages] = useState<string[]>(initial?.front_images ?? []);
   const [backImages, setBackImages] = useState<string[]>(initial?.back_images ?? []);
+  const [tags, setTags] = useState<Tag[]>(initial?.tags ?? []);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"front" | "back">("front");
 
@@ -64,6 +68,7 @@ export function CardForm({ initial, onSubmit, submitLabel, userId, cardId }: Car
       back_content: backContent.trim(),
       front_images: frontImages,
       back_images: backImages,
+      tags,
     });
     setSaving(false);
   };
@@ -168,6 +173,9 @@ export function CardForm({ initial, onSubmit, submitLabel, userId, cardId }: Car
           />
         </div>
       )}
+
+      {/* Tags */}
+      <TagInput selectedTags={tags} onChange={setTags} userId={userId} />
 
       <button
         type="submit"

@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { CardForm } from "@/components/card-form";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import type { Card } from "@/lib/types";
+import type { Card, Tag } from "@/lib/types";
 
 export default function EditCardPage() {
   const params = useParams();
@@ -14,6 +14,7 @@ export default function EditCardPage() {
   const router = useRouter();
   const supabase = createClient();
   const [card, setCard] = useState<Card | null>(null);
+  const [cardTags, setCardTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,6 +24,22 @@ export default function EditCardPage() {
         .select("*")
         .eq("id", cardId)
         .single();
+
+      // Fetch existing tags for this card
+      const { data: tagLinks } = await supabase
+        .from("card_tags")
+        .select("tag_id")
+        .eq("card_id", cardId);
+
+      if (tagLinks && tagLinks.length > 0) {
+        const tagIds = tagLinks.map((l) => l.tag_id);
+        const { data: tags } = await supabase
+          .from("tags")
+          .select("*")
+          .in("id", tagIds);
+        setCardTags(tags ?? []);
+      }
+
       setCard(data);
       setLoading(false);
     };
@@ -36,6 +53,7 @@ export default function EditCardPage() {
     back_content: string;
     front_images: string[];
     back_images: string[];
+    tags: Tag[];
   }) => {
     const { error } = await supabase
       .from("cards")
@@ -49,7 +67,14 @@ export default function EditCardPage() {
       })
       .eq("id", cardId);
 
-    if (!error && card) {
+    if (!error) {
+      // Replace card_tags: delete existing, insert new
+      await supabase.from("card_tags").delete().eq("card_id", cardId);
+      if (data.tags.length > 0) {
+        await supabase.from("card_tags").insert(
+          data.tags.map((tag) => ({ card_id: cardId, tag_id: tag.id }))
+        );
+      }
       router.push(`/cards/${cardId}`);
     }
   };
@@ -88,6 +113,7 @@ export default function EditCardPage() {
           back_content: card.back_content,
           front_images: card.front_images ?? [],
           back_images: card.back_images ?? [],
+          tags: cardTags,
         }}
         onSubmit={handleSubmit}
         submitLabel="Save Changes"

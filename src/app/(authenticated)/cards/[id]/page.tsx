@@ -7,7 +7,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { linkifyText } from "@/lib/linkify";
 import { ImageGrid } from "@/components/image-grid";
-import type { Card } from "@/lib/types";
+import type { Card, Tag } from "@/lib/types";
 
 const STATE_LABELS = ["New", "Learning", "Review", "Relearning"];
 
@@ -16,6 +16,7 @@ export default function CardViewPage() {
   const cardId = params.id as string;
   const supabase = createClient();
   const [card, setCard] = useState<Card | null>(null);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,6 +26,21 @@ export default function CardViewPage() {
         .select("*")
         .eq("id", cardId)
         .single();
+
+      const { data: tagLinks } = await supabase
+        .from("card_tags")
+        .select("tag_id")
+        .eq("card_id", cardId);
+
+      if (tagLinks && tagLinks.length > 0) {
+        const tagIds = tagLinks.map((l) => l.tag_id);
+        const { data: tagData } = await supabase
+          .from("tags")
+          .select("*")
+          .in("id", tagIds);
+        setTags(tagData ?? []);
+      }
+
       setCard(data);
       setLoading(false);
     };
@@ -91,6 +107,19 @@ export default function CardViewPage() {
           <ImageGrid images={card.back_images ?? []} />
         </div>
       </div>
+
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {tags.map((tag) => (
+            <span
+              key={tag.id}
+              className="rounded-full bg-blue-100 dark:bg-blue-900 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300"
+            >
+              {tag.name}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
         <span>State: {STATE_LABELS[card.state]}</span>

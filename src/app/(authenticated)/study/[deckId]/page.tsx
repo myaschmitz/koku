@@ -44,7 +44,9 @@ export default function StudyDeckPage() {
         settingsData ?? {
           user_id: user.id,
           again_interval_hours: 24,
-          hard_interval_hours: 72,
+          hard_interval_hours: 48,
+          good_interval_hours: 120,
+          easy_interval_hours: 192,
           max_new_cards_per_day: 20,
           theme: "system",
           created_at: "",
