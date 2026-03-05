@@ -75,7 +75,7 @@ export function CardForm({ initial, onSubmit, submitLabel, userId, cardId }: Car
         <button
           type="button"
           onClick={() => setActiveTab("front")}
-          className={`rounded-md py-3 text-base font-semibold transition-colors ${
+          className={`cursor-pointer rounded-md py-3 text-base font-semibold transition-colors ${
             activeTab === "front"
               ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
               : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
@@ -91,7 +91,7 @@ export function CardForm({ initial, onSubmit, submitLabel, userId, cardId }: Car
         <button
           type="button"
           onClick={() => setActiveTab("back")}
-          className={`rounded-md py-3 text-base font-semibold transition-colors ${
+          className={`cursor-pointer rounded-md py-3 text-base font-semibold transition-colors ${
             activeTab === "back"
               ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
               : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
@@ -172,7 +172,7 @@ export function CardForm({ initial, onSubmit, submitLabel, userId, cardId }: Car
       <button
         type="submit"
         disabled={saving || !frontTitle.trim() || !backContent.trim()}
-        className="rounded-lg bg-blue-500 dark:bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors disabled:opacity-50"
+        className="cursor-pointer rounded-lg bg-blue-500 dark:bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {saving ? "Saving..." : submitLabel}
       </button>

@@ -127,7 +127,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
         </div>
         <Link
           href="/decks"
-          className="inline-block rounded-lg bg-blue-500 dark:bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
+          className="cursor-pointer inline-block rounded-lg bg-blue-500 dark:bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
         >
           Back to Decks
         </Link>
@@ -230,7 +230,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       {!showAnswer ? (
         <button
           onClick={() => setShowAnswer(true)}
-          className="w-full rounded-lg bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 py-3 text-sm font-medium hover:bg-slate-700 dark:hover:bg-slate-300 transition-colors"
+          className="cursor-pointer w-full rounded-lg bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 py-3 text-sm font-medium hover:bg-slate-700 dark:hover:bg-slate-300 transition-colors"
         >
           Show Answer
         </button>
@@ -240,7 +240,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
             <button
               key={btn.label}
               onClick={() => handleRate(btn.rating)}
-              className={`rounded-lg py-3 text-white text-sm font-medium transition-colors ${btn.color}`}
+              className={`cursor-pointer rounded-lg py-3 text-white text-sm font-medium transition-colors ${btn.color}`}
             >
               <div>{btn.label}</div>
               <div className="text-xs opacity-80 mt-0.5">{btn.interval}</div>

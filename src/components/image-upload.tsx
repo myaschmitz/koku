@@ -160,7 +160,7 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
                   type="button"
                   aria-label="Remove image"
                   onClick={() => removeImage(url)}
-                  className="absolute -top-1.5 -right-1.5 rounded-full bg-red-500 p-0.5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="cursor-pointer absolute -top-1.5 -right-1.5 rounded-full bg-red-500 p-0.5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -185,7 +185,7 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="text-blue-500 hover:text-blue-600 font-medium"
+              className="cursor-pointer text-blue-500 hover:text-blue-600 font-medium"
             >
               browse
             </button>
