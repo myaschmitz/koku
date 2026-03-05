@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { linkifyText } from "@/lib/linkify";
+import { Markdown } from "@/components/markdown";
 import { ImageGrid } from "@/components/image-grid";
 import type { Card, Tag } from "@/lib/types";
 
@@ -88,9 +88,9 @@ export default function CardViewPage() {
           </span>
           <h2 className="text-xl font-semibold mt-1">{card.front_title}</h2>
           {card.front_detail && (
-            <p className="mt-2 text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
-              {linkifyText(card.front_detail)}
-            </p>
+            <div className="mt-2 text-slate-600 dark:text-slate-300">
+              <Markdown>{card.front_detail}</Markdown>
+            </div>
           )}
           <ImageGrid images={card.front_images ?? []} />
         </div>
@@ -101,9 +101,9 @@ export default function CardViewPage() {
           <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
             Back
           </span>
-          <p className="mt-2 text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
-            {linkifyText(card.back_content)}
-          </p>
+          <div className="mt-2 text-slate-600 dark:text-slate-300">
+            <Markdown>{card.back_content}</Markdown>
+          </div>
           <ImageGrid images={card.back_images ?? []} />
         </div>
       </div>

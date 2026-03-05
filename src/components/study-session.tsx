@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { scheduleCard, getSchedulingPreview, Rating } from "@/lib/srs";
-import { linkifyText } from "@/lib/linkify";
+import { Markdown } from "@/components/markdown";
 import { ImageGrid } from "@/components/image-grid";
 import Link from "next/link";
 import type { Grade } from "ts-fsrs";
@@ -202,9 +202,9 @@ export function StudySession({ cards, settings }: StudySessionProps) {
           </span>
           <h2 className="text-xl font-semibold mt-2">{card.front_title}</h2>
           {card.front_detail && (
-            <p className="mt-3 text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
-              {linkifyText(card.front_detail)}
-            </p>
+            <div className="mt-3 text-slate-600 dark:text-slate-300">
+              <Markdown>{card.front_detail}</Markdown>
+            </div>
           )}
           <ImageGrid images={card.front_images ?? []} />
         </div>
@@ -217,9 +217,9 @@ export function StudySession({ cards, settings }: StudySessionProps) {
               <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
                 Back
               </span>
-              <p className="mt-2 text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
-                {linkifyText(card.back_content)}
-              </p>
+              <div className="mt-2 text-slate-600 dark:text-slate-300">
+                <Markdown>{card.back_content}</Markdown>
+              </div>
               <ImageGrid images={card.back_images ?? []} />
             </div>
           </>
