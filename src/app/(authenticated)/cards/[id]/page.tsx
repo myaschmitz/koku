@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { linkifyText } from "@/lib/linkify";
+import { ImageGrid } from "@/components/image-grid";
 import type { Card } from "@/lib/types";
 
 const STATE_LABELS = ["New", "Learning", "Review", "Relearning"];
@@ -75,6 +76,7 @@ export default function CardViewPage() {
               {linkifyText(card.front_detail)}
             </p>
           )}
+          <ImageGrid images={card.front_images ?? []} />
         </div>
 
         <hr className="border-slate-200 dark:border-slate-700" />
@@ -86,6 +88,7 @@ export default function CardViewPage() {
           <p className="mt-2 text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
             {linkifyText(card.back_content)}
           </p>
+          <ImageGrid images={card.back_images ?? []} />
         </div>
       </div>
 

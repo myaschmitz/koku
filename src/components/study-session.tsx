@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { scheduleCard, getSchedulingPreview, Rating } from "@/lib/srs";
 import { linkifyText } from "@/lib/linkify";
+import { ImageGrid } from "@/components/image-grid";
 import Link from "next/link";
 import type { Grade } from "ts-fsrs";
 import type { Card, UserSettings } from "@/lib/types";
@@ -205,6 +206,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
               {linkifyText(card.front_detail)}
             </p>
           )}
+          <ImageGrid images={card.front_images ?? []} />
         </div>
 
         {/* Back (revealed) */}
@@ -218,6 +220,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
               <p className="mt-2 text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
                 {linkifyText(card.back_content)}
               </p>
+              <ImageGrid images={card.back_images ?? []} />
             </div>
           </>
         )}

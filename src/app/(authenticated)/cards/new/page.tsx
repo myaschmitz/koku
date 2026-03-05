@@ -1,35 +1,58 @@
 "use client";
 
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { CardForm } from "@/components/card-form";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export default function NewCardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-20">
+          <p className="text-slate-500 dark:text-slate-400">Loading...</p>
+        </div>
+      }
+    >
+      <NewCardContent />
+    </Suspense>
+  );
+}
+
+function NewCardContent() {
   const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const deckId = searchParams.get("deck");
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setUserId(user.id);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async (data: {
     front_title: string;
     front_detail: string;
     back_content: string;
+    front_images: string[];
+    back_images: string[];
   }) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user || !deckId) return;
+    if (!userId || !deckId) return;
 
     const { error } = await supabase.from("cards").insert({
       deck_id: deckId,
-      user_id: user.id,
+      user_id: userId,
       front_title: data.front_title,
       front_detail: data.front_detail || null,
-      front_images: [],
+      front_images: data.front_images,
       back_content: data.back_content,
-      back_images: [],
+      back_images: data.back_images,
     });
 
     if (!error) {
@@ -53,6 +76,14 @@ export default function NewCardPage() {
     );
   }
 
+  if (!userId) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <p className="text-slate-500 dark:text-slate-400">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
@@ -64,7 +95,7 @@ export default function NewCardPage() {
         </Link>
         <h1 className="text-2xl font-bold mt-1">New Card</h1>
       </div>
-      <CardForm onSubmit={handleSubmit} submitLabel="Create Card" />
+      <CardForm onSubmit={handleSubmit} submitLabel="Create Card" userId={userId} />
     </div>
   );
 }
