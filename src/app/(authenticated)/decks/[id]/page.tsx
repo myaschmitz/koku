@@ -1,11 +1,12 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import type { Card, Deck, Tag } from "@/lib/types";
+import { CreateCardModal } from "@/components/create-card-modal";
 
 const STATE_LABELS = ["New", "Learning", "Review", "Relearning"];
 const STATE_COLORS = [
@@ -24,61 +25,74 @@ export default function DeckDetailPage() {
   const [cardTagsMap, setCardTagsMap] = useState<Record<string, Tag[]>>({});
   const [loading, setLoading] = useState(true);
   const [dueCount, setDueCount] = useState(0);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  const refreshCards = useCallback(async () => {
+    const { data: cardsData } = await supabase
+      .from("cards")
+      .select("*")
+      .eq("deck_id", deckId)
+      .order("created_at", { ascending: false });
+
+    const now = new Date().toISOString();
+    const { count } = await supabase
+      .from("cards")
+      .select("*", { count: "exact", head: true })
+      .eq("deck_id", deckId)
+      .lte("due", now);
+
+    if (cardsData && cardsData.length > 0) {
+      const cardIds = cardsData.map((c) => c.id);
+      const { data: cardTagLinks } = await supabase
+        .from("card_tags")
+        .select("card_id, tag_id")
+        .in("card_id", cardIds);
+
+      if (cardTagLinks && cardTagLinks.length > 0) {
+        const tagIds = [...new Set(cardTagLinks.map((l) => l.tag_id))];
+        const { data: tagsData } = await supabase
+          .from("tags")
+          .select("*")
+          .in("id", tagIds);
+
+        const tagsById = new Map((tagsData ?? []).map((t) => [t.id, t]));
+        const map: Record<string, Tag[]> = {};
+        for (const link of cardTagLinks) {
+          const tag = tagsById.get(link.tag_id);
+          if (tag) {
+            (map[link.card_id] ??= []).push(tag);
+          }
+        }
+        setCardTagsMap(map);
+      } else {
+        setCardTagsMap({});
+      }
+    } else {
+      setCardTagsMap({});
+    }
+
+    setCards(cardsData ?? []);
+    setDueCount(count ?? 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deckId]);
 
   useEffect(() => {
-    const fetch = async () => {
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setUserId(user.id);
+
       const { data: deckData } = await supabase
         .from("decks")
         .select("*")
         .eq("id", deckId)
         .single();
 
-      const { data: cardsData } = await supabase
-        .from("cards")
-        .select("*")
-        .eq("deck_id", deckId)
-        .order("created_at", { ascending: false });
-
-      const now = new Date().toISOString();
-      const { count } = await supabase
-        .from("cards")
-        .select("*", { count: "exact", head: true })
-        .eq("deck_id", deckId)
-        .lte("due", now);
-
-      // Fetch tags for all cards in this deck
-      if (cardsData && cardsData.length > 0) {
-        const cardIds = cardsData.map((c) => c.id);
-        const { data: cardTagLinks } = await supabase
-          .from("card_tags")
-          .select("card_id, tag_id")
-          .in("card_id", cardIds);
-
-        if (cardTagLinks && cardTagLinks.length > 0) {
-          const tagIds = [...new Set(cardTagLinks.map((l) => l.tag_id))];
-          const { data: tagsData } = await supabase
-            .from("tags")
-            .select("*")
-            .in("id", tagIds);
-
-          const tagsById = new Map((tagsData ?? []).map((t) => [t.id, t]));
-          const map: Record<string, Tag[]> = {};
-          for (const link of cardTagLinks) {
-            const tag = tagsById.get(link.tag_id);
-            if (tag) {
-              (map[link.card_id] ??= []).push(tag);
-            }
-          }
-          setCardTagsMap(map);
-        }
-      }
-
       setDeck(deckData);
-      setCards(cardsData ?? []);
-      setDueCount(count ?? 0);
+      await refreshCards();
       setLoading(false);
     };
-    fetch();
+    init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deckId]);
 
@@ -130,12 +144,13 @@ export default function DeckDetailPage() {
               Study ({dueCount})
             </Link>
           )}
-          <Link
-            href={`/cards/new?deck=${deckId}`}
-            className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          <button
+            type="button"
+            onClick={() => setShowCreateModal(true)}
+            className="cursor-pointer rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             + New Card
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -144,12 +159,13 @@ export default function DeckDetailPage() {
           <p className="text-slate-500 dark:text-slate-400 mb-4">
             No cards in this deck yet.
           </p>
-          <Link
-            href={`/cards/new?deck=${deckId}`}
-            className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-colors"
+          <button
+            type="button"
+            onClick={() => setShowCreateModal(true)}
+            className="cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-colors"
           >
             + New Card
-          </Link>
+          </button>
         </div>
       ) : (
         <div className="space-y-3">
@@ -205,6 +221,16 @@ export default function DeckDetailPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {userId && (
+        <CreateCardModal
+          deckId={deckId}
+          userId={userId}
+          open={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={refreshCards}
+        />
       )}
     </div>
   );
