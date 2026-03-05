@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Settings } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 
 export function NavHeader() {
@@ -25,6 +26,13 @@ export function NavHeader() {
         </Link>
         <div className="flex items-center gap-3">
           <ThemeToggle />
+          <Link
+            href="/settings"
+            className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+            title="Settings"
+          >
+            <Settings className="h-5 w-5" />
+          </Link>
           <button
             onClick={handleSignOut}
             className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors hover:cursor-pointer"
