@@ -5,6 +5,19 @@
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Blue-grey palette (mostly grey, hint of blue) */
+  --color-slate-50: #f4f5f7;
+  --color-slate-100: #e8e9ed;
+  --color-slate-200: #d5d7dc;
+  --color-slate-300: #b9bcc4;
+  --color-slate-400: #9498a3;
+  --color-slate-500: #717580;
+  --color-slate-600: #5a5e67;
+  --color-slate-700: #474a53;
+  --color-slate-800: #303339;
+  --color-slate-900: #202228;
+  --color-slate-950: #15161b;
 }
 
 body {
