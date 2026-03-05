@@ -50,7 +50,7 @@ export default function DecksPage() {
           card_count: cardCount ?? 0,
           due_count: dueCount ?? 0,
         };
-      })
+      }),
     );
 
     setDecks(decksWithCounts);
@@ -251,7 +251,7 @@ export default function DecksPage() {
                     </button>
                     <button
                       onClick={() => handleDelete(deck.id)}
-                      className="p-1 text-slate-400 hover:text-red-500"
+                      className="p-1 text-slate-400 hover:text-red-500 hover:cursor-pointer"
                       title="Delete"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -283,7 +283,7 @@ export default function DecksPage() {
                   )}
                 </div>
               </div>
-            )
+            ),
           )}
         </div>
       )}
