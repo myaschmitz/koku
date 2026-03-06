@@ -42,8 +42,6 @@ body {
   font-family: var(--font-mono), monospace;
 }
 .markdown-content pre {
-  background: var(--color-slate-900);
-  color: #e5e7eb;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   overflow-x: auto;
@@ -54,6 +52,24 @@ body {
   background: none;
   padding: 0;
   font-family: var(--font-mono), monospace;
+}
+
+/* Shiki dual-theme: light mode uses --shiki-light, dark mode uses --shiki-dark */
+.markdown-content pre code span {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+.markdown-content pre {
+  background-color: var(--shiki-light-bg);
+  color: var(--shiki-light);
+}
+:where(.dark, .dark *) .markdown-content pre code span {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+}
+:where(.dark, .dark *) .markdown-content pre {
+  background-color: var(--shiki-dark-bg);
+  color: var(--shiki-dark);
 }
 .markdown-content table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; }
 .markdown-content th, .markdown-content td { border: 1px solid var(--color-slate-300); padding: 0.375rem 0.75rem; text-align: left; }

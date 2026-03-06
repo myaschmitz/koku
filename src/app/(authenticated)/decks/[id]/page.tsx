@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Pencil,
@@ -113,6 +114,7 @@ function CardMeta({ card, tags }: { card: Card; tags: Tag[] }) {
 
 export default function DeckDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const deckId = params.id as string;
   const supabase = createClient();
   const [deck, setDeck] = useState<Deck | null>(null);
@@ -332,20 +334,24 @@ export default function DeckDetailPage() {
           {viewMode === "grid" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {cards.map((card) => (
-                <Link
+                <div
                   key={card.id}
-                  href={`/cards/${card.id}`}
-                  className="group block rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`View card: ${card.front_title}`}
+                  onClick={() => router.push(`/cards/${card.id}`)}
+                  onKeyDown={(e) => { if (e.key === "Enter") router.push(`/cards/${card.id}`); }}
+                  className="group block cursor-pointer rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0" />
-                    <div onClick={(e) => e.preventDefault()}>
+                    <div onClick={(e) => e.stopPropagation()}>
                       <CardActions card={card} onDelete={handleDeleteCard} hideUntilHover />
                     </div>
                   </div>
                   <CardFrontBack card={card} compact />
                   <CardMeta card={card} tags={cardTagsMap[card.id] ?? []} />
-                </Link>
+                </div>
               ))}
             </div>
           )}
