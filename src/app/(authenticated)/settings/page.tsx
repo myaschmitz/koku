@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { Sun, Moon, Monitor, Palmtree } from "lucide-react";
 import type { UserSettings } from "@/lib/types";
 
 const AGAIN_OPTIONS = [
@@ -36,6 +36,7 @@ export default function SettingsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [togglingVacation, setTogglingVacation] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -89,6 +90,67 @@ export default function SettingsPage() {
 
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
+  };
+
+  const handleVacationToggle = async () => {
+    if (!settings) return;
+    setTogglingVacation(true);
+
+    const enabling = !settings.vacation_mode;
+
+    if (enabling) {
+      // Turn on vacation mode — record start time
+      const now = new Date().toISOString();
+      await supabase
+        .from("user_settings")
+        .update({
+          vacation_mode: true,
+          vacation_started_at: now,
+          updated_at: now,
+        })
+        .eq("user_id", settings.user_id);
+
+      setSettings({ ...settings, vacation_mode: true, vacation_started_at: now });
+    } else {
+      // Turn off vacation mode — shift all card due dates forward
+      const vacationStart = new Date(settings.vacation_started_at!);
+      const now = new Date();
+      const vacationMs = now.getTime() - vacationStart.getTime();
+
+      // Fetch all non-suspended cards for this user
+      const { data: cards } = await supabase
+        .from("cards")
+        .select("id, due")
+        .eq("user_id", settings.user_id)
+        .eq("suspended", false);
+
+      if (cards && cards.length > 0) {
+        // Shift each card's due date forward by the vacation duration
+        const updates = cards.map((card) => {
+          const oldDue = new Date(card.due);
+          const newDue = new Date(oldDue.getTime() + vacationMs);
+          return supabase
+            .from("cards")
+            .update({ due: newDue.toISOString() })
+            .eq("id", card.id);
+        });
+        await Promise.all(updates);
+      }
+
+      const nowIso = now.toISOString();
+      await supabase
+        .from("user_settings")
+        .update({
+          vacation_mode: false,
+          vacation_started_at: null,
+          updated_at: nowIso,
+        })
+        .eq("user_id", settings.user_id);
+
+      setSettings({ ...settings, vacation_mode: false, vacation_started_at: null });
+    }
+
+    setTogglingVacation(false);
   };
 
   if (loading) {
@@ -232,6 +294,54 @@ export default function SettingsPage() {
             </div>
           )}
         </div>
+      </section>
+
+      {/* Vacation Mode */}
+      <section className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Palmtree className="h-5 w-5 text-emerald-500" />
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Vacation Mode
+              </h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Pause all cards so they don&apos;t pile up while you&apos;re away.
+              </p>
+            </div>
+          </div>
+          <button
+            aria-label="Toggle vacation mode"
+            onClick={handleVacationToggle}
+            disabled={togglingVacation}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer disabled:opacity-50 ${
+              settings.vacation_mode
+                ? "bg-emerald-500"
+                : "bg-slate-300 dark:bg-slate-600"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+                settings.vacation_mode ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </div>
+        {settings.vacation_mode && settings.vacation_started_at && (
+          <div className="rounded-md bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 px-4 py-3">
+            <p className="text-sm text-emerald-700 dark:text-emerald-300">
+              Vacation mode is active since{" "}
+              <span className="font-medium">
+                {new Date(settings.vacation_started_at).toLocaleDateString(undefined, {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+              . When you turn it off, all card due dates will be shifted forward so nothing piles up.
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Account */}

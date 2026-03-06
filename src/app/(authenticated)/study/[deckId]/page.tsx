@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Palmtree } from "lucide-react";
 import { StudySession } from "@/components/study-session";
 import type { Card, UserSettings } from "@/lib/types";
 
@@ -50,6 +50,8 @@ export default function StudyDeckPage() {
           easy_interval_hours: 192,
           max_new_cards_per_day: 20,
           theme: "system",
+          vacation_mode: false,
+          vacation_started_at: null,
           created_at: "",
           updated_at: "",
         }
@@ -64,6 +66,28 @@ export default function StudyDeckPage() {
     return (
       <div className="flex items-center justify-center py-20">
         <p className="text-slate-500 dark:text-slate-400">Loading...</p>
+      </div>
+    );
+  }
+
+  if (settings?.vacation_mode) {
+    return (
+      <div className="text-center py-20">
+        <Palmtree className="h-10 w-10 text-emerald-500 mx-auto mb-3" />
+        <h2 className="text-xl font-semibold mb-2">Vacation Mode Active</h2>
+        <p className="text-slate-500 dark:text-slate-400 mb-4">
+          Reviews are paused. Turn off vacation mode in{" "}
+          <Link href="/settings" className="text-blue-500 hover:text-blue-600">
+            settings
+          </Link>{" "}
+          to resume studying.
+        </p>
+        <Link
+          href={`/decks/${deckId}`}
+          className="text-blue-500 hover:text-blue-600 text-sm"
+        >
+          <ArrowLeft className="inline h-4 w-4" /> Back to deck
+        </Link>
       </div>
     );
   }

@@ -55,6 +55,8 @@ export interface UserSettings {
   easy_interval_hours: number;
   max_new_cards_per_day: number;
   theme: string;
+  vacation_mode: boolean;
+  vacation_started_at: string | null;
   created_at: string;
   updated_at: string;
 }
