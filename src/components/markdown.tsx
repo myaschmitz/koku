@@ -58,6 +58,14 @@ const components: Components = {
     // eslint-disable-next-line @next/next/no-img-element
     <img src={typeof src === "string" ? resolveImageUrl(src) : undefined} alt={alt ?? "image"} {...props} />
   ),
+  code: ({ className, children, ...props }) => {
+    // If className contains "language-", it's a code block handled by Shiki (inside <pre>)
+    if (className && /language-/.test(className)) {
+      return <code className={className} {...props}>{children}</code>;
+    }
+    // Inline code — apply font-mono directly
+    return <code className="font-mono" {...props}>{children}</code>;
+  },
 };
 
 interface MarkdownProps {
