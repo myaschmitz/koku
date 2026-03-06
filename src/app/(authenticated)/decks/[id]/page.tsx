@@ -238,22 +238,42 @@ export default function DeckDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <Link
-            href="/decks"
-            className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
-          >
-            <ArrowLeft className="inline h-4 w-4" /> Back to decks
-          </Link>
-          <h1 className="text-2xl font-bold mt-1">{deck.name}</h1>
-          {deck.description && (
-            <p className="text-slate-500 dark:text-slate-400 mt-1">
-              {deck.description}
-            </p>
-          )}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <Link
+              href="/decks"
+              className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+            >
+              <ArrowLeft className="inline h-4 w-4" /> Back to decks
+            </Link>
+            <h1 className="text-2xl font-bold mt-1">{deck.name}</h1>
+            {deck.description && (
+              <p className="text-slate-500 dark:text-slate-400 mt-1">
+                {deck.description}
+              </p>
+            )}
+          </div>
+          <div className="hidden sm:flex gap-3 items-center">
+            {dueCount > 0 && (
+              <Link
+                href={`/study/${deckId}`}
+                className="rounded-lg bg-blue-500 dark:bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
+              >
+                Study ({dueCount})
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowCreateModal(true)}
+              className="cursor-pointer rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              + New Card
+            </button>
+          </div>
         </div>
-        <div className="flex gap-3 items-center">
+
+        <div className="flex items-center justify-between">
           {/* View mode toggle */}
           <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden">
             {viewButtons.map(({ mode, icon: Icon, label }) => (
@@ -273,21 +293,23 @@ export default function DeckDetailPage() {
             ))}
           </div>
 
-          {dueCount > 0 && (
-            <Link
-              href={`/study/${deckId}`}
-              className="rounded-lg bg-blue-500 dark:bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
+          <div className="flex sm:hidden gap-3 items-center">
+            {dueCount > 0 && (
+              <Link
+                href={`/study/${deckId}`}
+                className="rounded-lg bg-blue-500 dark:bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
+              >
+                Study ({dueCount})
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowCreateModal(true)}
+              className="cursor-pointer rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
-              Study ({dueCount})
-            </Link>
-          )}
-          <button
-            type="button"
-            onClick={() => setShowCreateModal(true)}
-            className="cursor-pointer rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            + New Card
-          </button>
+              + New Card
+            </button>
+          </div>
         </div>
       </div>
 
