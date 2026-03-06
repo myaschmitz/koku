@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { scheduleCard, getSchedulingPreview, Rating } from "@/lib/srs";
 import { Markdown } from "@/components/markdown";
-import { ImageGrid } from "@/components/image-grid";
+
 import Link from "next/link";
 import { PauseCircle } from "lucide-react";
 import type { Grade } from "ts-fsrs";
@@ -372,7 +372,6 @@ export function StudySession({ cards, settings }: StudySessionProps) {
               <Markdown>{card.front_detail}</Markdown>
             </div>
           )}
-          <ImageGrid images={card.front_images ?? []} />
         </div>
 
         {/* Back (revealed) */}
@@ -386,7 +385,6 @@ export function StudySession({ cards, settings }: StudySessionProps) {
               <div className="mt-2 text-slate-600 dark:text-slate-300">
                 <Markdown>{card.back_content}</Markdown>
               </div>
-              <ImageGrid images={card.back_images ?? []} />
             </div>
           </>
         )}

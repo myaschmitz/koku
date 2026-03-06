@@ -1,17 +1,16 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
-import { ImageUpload, type ImageUploadHandle } from "@/components/image-upload";
+import { useState, useCallback } from "react";
 import { TagInput } from "@/components/tag-input";
 import { MarkdownEditor } from "@/components/markdown-editor";
+import { createClient } from "@/lib/supabase/client";
+import { uploadImage } from "@/lib/upload-image";
 import type { Tag } from "@/lib/types";
 
 export interface CardFormData {
   front_title: string;
   front_detail: string;
   back_content: string;
-  front_images: string[];
-  back_images: string[];
   tags: Tag[];
 }
 
@@ -27,36 +26,20 @@ export function CardForm({ initial, onSubmit, submitLabel, userId, cardId }: Car
   const [frontTitle, setFrontTitle] = useState(initial?.front_title ?? "");
   const [frontDetail, setFrontDetail] = useState(initial?.front_detail ?? "");
   const [backContent, setBackContent] = useState(initial?.back_content ?? "");
-  const [frontImages, setFrontImages] = useState<string[]>(initial?.front_images ?? []);
-  const [backImages, setBackImages] = useState<string[]>(initial?.back_images ?? []);
   const [tags, setTags] = useState<Tag[]>(initial?.tags ?? []);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"front" | "back">("front");
 
-  const uploadRef = useRef<ImageUploadHandle>(null);
-
   const [tempId] = useState(() => crypto.randomUUID());
   const storagePath = `${userId}/${cardId ?? tempId}`;
 
-  const handleFormPaste = useCallback(
-    async (e: React.ClipboardEvent) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
+  const supabase = createClient();
 
-      const files: File[] = [];
-      for (const item of items) {
-        if (item.type.startsWith("image/") || item.type === "") {
-          const file = item.getAsFile();
-          if (file) files.push(file);
-        }
-      }
-
-      if (files.length > 0) {
-        e.preventDefault();
-        await uploadRef.current?.processFiles(files);
-      }
+  const handleImageUpload = useCallback(
+    async (file: File) => {
+      return uploadImage(supabase, file, storagePath);
     },
-    []
+    [supabase, storagePath]
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,15 +50,13 @@ export function CardForm({ initial, onSubmit, submitLabel, userId, cardId }: Car
       front_title: frontTitle.trim(),
       front_detail: frontDetail.trim(),
       back_content: backContent.trim(),
-      front_images: frontImages,
-      back_images: backImages,
       tags,
     });
     setSaving(false);
   };
 
   return (
-    <form onSubmit={handleSubmit} onPaste={handleFormPaste} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {/* Tabs */}
       <div className="grid grid-cols-2 rounded-lg bg-slate-100 dark:bg-slate-800 p-1">
         <button
@@ -88,11 +69,6 @@ export function CardForm({ initial, onSubmit, submitLabel, userId, cardId }: Car
           }`}
         >
           Front
-          {frontImages.length > 0 && (
-            <span className="ml-2 inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 text-xs">
-              {frontImages.length}
-            </span>
-          )}
         </button>
         <button
           type="button"
@@ -104,11 +80,6 @@ export function CardForm({ initial, onSubmit, submitLabel, userId, cardId }: Car
           }`}
         >
           Back
-          {backImages.length > 0 && (
-            <span className="ml-2 inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 text-xs">
-              {backImages.length}
-            </span>
-          )}
         </button>
       </div>
 
@@ -134,17 +105,11 @@ export function CardForm({ initial, onSubmit, submitLabel, userId, cardId }: Car
             <MarkdownEditor
               value={frontDetail}
               onChange={setFrontDetail}
+              onImageUpload={handleImageUpload}
               placeholder="Problem description, constraints, hints... (supports Markdown)"
               rows={4}
             />
           </div>
-          <ImageUpload
-            ref={uploadRef}
-            images={frontImages}
-            onChange={setFrontImages}
-            userId={userId}
-            storagePath={storagePath}
-          />
         </div>
       )}
 
@@ -158,18 +123,12 @@ export function CardForm({ initial, onSubmit, submitLabel, userId, cardId }: Car
             <MarkdownEditor
               value={backContent}
               onChange={setBackContent}
+              onImageUpload={handleImageUpload}
               placeholder="Solution approach, key intuition, code pattern... (supports Markdown)"
               rows={8}
               required
             />
           </div>
-          <ImageUpload
-            ref={uploadRef}
-            images={backImages}
-            onChange={setBackImages}
-            userId={userId}
-            storagePath={storagePath}
-          />
         </div>
       )}
 

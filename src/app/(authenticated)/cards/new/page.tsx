@@ -40,8 +40,6 @@ function NewCardContent() {
     front_title: string;
     front_detail: string;
     back_content: string;
-    front_images: string[];
-    back_images: string[];
     tags: { id: string; name: string }[];
   }) => {
     if (!userId || !deckId) return;
@@ -53,9 +51,7 @@ function NewCardContent() {
         user_id: userId,
         front_title: data.front_title,
         front_detail: data.front_detail || null,
-        front_images: data.front_images,
         back_content: data.back_content,
-        back_images: data.back_images,
       })
       .select("id")
       .single();

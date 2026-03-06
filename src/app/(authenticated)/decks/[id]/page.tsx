@@ -18,7 +18,7 @@ import {
 import type { Card, Deck, Tag } from "@/lib/types";
 import { CreateCardModal } from "@/components/create-card-modal";
 import { Markdown } from "@/components/markdown";
-import { ImageGrid } from "@/components/image-grid";
+
 
 const STATE_LABELS = ["New", "Learning", "Review", "Relearning"];
 const STATE_COLORS = [
@@ -84,7 +84,6 @@ function CardFrontBack({ card, compact }: { card: Card; compact?: boolean }) {
             <Markdown>{card.front_detail}</Markdown>
           </div>
         )}
-        {!compact && <ImageGrid images={card.front_images ?? []} />}
       </div>
 
       <div className="border-t border-dashed border-slate-300 dark:border-slate-600" />
@@ -95,7 +94,6 @@ function CardFrontBack({ card, compact }: { card: Card; compact?: boolean }) {
         >
           <Markdown>{card.back_content}</Markdown>
         </div>
-        {!compact && <ImageGrid images={card.back_images ?? []} />}
       </div>
     </div>
   );
@@ -475,7 +473,6 @@ export default function DeckDetailPage() {
                             <Markdown>{selectedCard.front_detail}</Markdown>
                           </div>
                         )}
-                        <ImageGrid images={selectedCard.front_images ?? []} />
                       </div>
 
                       <div className="border-t border-dashed border-slate-300 dark:border-slate-600" />
@@ -487,7 +484,6 @@ export default function DeckDetailPage() {
                         <div className="mt-2 text-slate-600 dark:text-slate-300">
                           <Markdown>{selectedCard.back_content}</Markdown>
                         </div>
-                        <ImageGrid images={selectedCard.back_images ?? []} />
                       </div>
                     </div>
 

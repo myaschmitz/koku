@@ -51,8 +51,6 @@ export default function EditCardPage() {
     front_title: string;
     front_detail: string;
     back_content: string;
-    front_images: string[];
-    back_images: string[];
     tags: Tag[];
   }) => {
     const { error } = await supabase
@@ -60,9 +58,7 @@ export default function EditCardPage() {
       .update({
         front_title: data.front_title,
         front_detail: data.front_detail || null,
-        front_images: data.front_images,
         back_content: data.back_content,
-        back_images: data.back_images,
         updated_at: new Date().toISOString(),
       })
       .eq("id", cardId);
@@ -111,8 +107,6 @@ export default function EditCardPage() {
           front_title: card.front_title,
           front_detail: card.front_detail ?? "",
           back_content: card.back_content,
-          front_images: card.front_images ?? [],
-          back_images: card.back_images ?? [],
           tags: cardTags,
         }}
         onSubmit={handleSubmit}

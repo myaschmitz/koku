@@ -50,9 +50,7 @@ export function CreateCardModal({
         user_id: userId,
         front_title: data.front_title,
         front_detail: data.front_detail || null,
-        front_images: data.front_images,
         back_content: data.back_content,
-        back_images: data.back_images,
       })
       .select("id")
       .single();

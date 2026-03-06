@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Bold, Italic, Code, Link, List, Heading2 } from "lucide-react";
+import { Bold, Italic, Code, Link, List, Heading2, ImagePlus, Loader2 } from "lucide-react";
 import { Markdown } from "@/components/markdown";
 
 interface MarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
+  onImageUpload?: (file: File) => Promise<string | null>;
   placeholder?: string;
   rows?: number;
   required?: boolean;
@@ -46,15 +47,94 @@ function insertAtLineStart(
   });
 }
 
+function insertText(
+  textarea: HTMLTextAreaElement,
+  text: string,
+  onChange: (v: string) => void
+) {
+  const { selectionStart, value } = textarea;
+  const newValue = value.slice(0, selectionStart) + text + value.slice(selectionStart);
+  onChange(newValue);
+  requestAnimationFrame(() => {
+    textarea.focus();
+    textarea.selectionStart = textarea.selectionEnd = selectionStart + text.length;
+  });
+}
+
 export function MarkdownEditor({
   value,
   onChange,
+  onImageUpload,
   placeholder,
   rows = 6,
   required,
 }: MarkdownEditorProps) {
   const [mode, setMode] = useState<"write" | "preview">("write");
+  const [uploading, setUploading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageFiles = useCallback(
+    async (files: File[]) => {
+      if (!onImageUpload) return;
+      const imageFiles = files.filter(
+        (f) =>
+          f.type.startsWith("image/") ||
+          f.name?.toLowerCase().endsWith(".heic") ||
+          f.name?.toLowerCase().endsWith(".heif")
+      );
+      if (imageFiles.length === 0) return;
+
+      setUploading(true);
+      for (const file of imageFiles) {
+        const url = await onImageUpload(file);
+        if (url && textareaRef.current) {
+          insertText(textareaRef.current, `![image](${url})\n`, onChange);
+        }
+      }
+      setUploading(false);
+    },
+    [onImageUpload, onChange]
+  );
+
+  const handlePaste = useCallback(
+    async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+      if (!onImageUpload) return;
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      const files: File[] = [];
+      for (const item of items) {
+        if (item.type.startsWith("image/") || item.type === "") {
+          const file = item.getAsFile();
+          if (file) files.push(file);
+        }
+      }
+
+      if (files.length > 0) {
+        e.preventDefault();
+        await handleImageFiles(files);
+      }
+    },
+    [onImageUpload, handleImageFiles]
+  );
+
+  const handleDrop = useCallback(
+    async (e: React.DragEvent<HTMLTextAreaElement>) => {
+      if (!onImageUpload) return;
+      const files = Array.from(e.dataTransfer.files).filter(
+        (f) =>
+          f.type.startsWith("image/") ||
+          f.name?.toLowerCase().endsWith(".heic") ||
+          f.name?.toLowerCase().endsWith(".heif")
+      );
+      if (files.length > 0) {
+        e.preventDefault();
+        await handleImageFiles(files);
+      }
+    },
+    [onImageUpload, handleImageFiles]
+  );
 
   const handleToolbar = useCallback(
     (action: string) => {
@@ -82,9 +162,21 @@ export function MarkdownEditor({
         case "heading":
           insertAtLineStart(ta, "## ", onChange);
           break;
+        case "image":
+          fileInputRef.current?.click();
+          break;
       }
     },
     [onChange]
+  );
+
+  const handleFileInput = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files ?? []);
+      await handleImageFiles(files);
+      e.target.value = "";
+    },
+    [handleImageFiles]
   );
 
   const toolbarButtons = [
@@ -94,6 +186,9 @@ export function MarkdownEditor({
     { action: "link", icon: Link, title: "Link" },
     { action: "list", icon: List, title: "List" },
     { action: "heading", icon: Heading2, title: "Heading" },
+    ...(onImageUpload
+      ? [{ action: "image", icon: uploading ? Loader2 : ImagePlus, title: "Insert image" }]
+      : []),
   ];
 
   return (
@@ -108,7 +203,10 @@ export function MarkdownEditor({
                 type="button"
                 title={btn.title}
                 onClick={() => handleToolbar(btn.action)}
-                className="cursor-pointer p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                disabled={btn.action === "image" && uploading}
+                className={`cursor-pointer p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors disabled:opacity-50 ${
+                  btn.action === "image" && uploading ? "animate-spin" : ""
+                }`}
               >
                 <btn.icon className="h-4 w-4" />
               </button>
@@ -142,15 +240,26 @@ export function MarkdownEditor({
 
       {/* Content area */}
       {mode === "write" ? (
-        <textarea
-          ref={textareaRef}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          rows={rows}
-          required={required}
-          className="w-full bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none resize-y font-mono"
-        />
+        <>
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onPaste={handlePaste}
+            onDrop={handleDrop}
+            placeholder={placeholder}
+            rows={rows}
+            required={required}
+            disabled={uploading}
+            className="w-full bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none resize-y font-mono disabled:opacity-60"
+          />
+          {uploading && (
+            <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Uploading image...
+            </div>
+          )}
+        </>
       ) : (
         <div
           className="px-3 py-2 text-sm min-h-[100px] bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300"
@@ -162,6 +271,19 @@ export function MarkdownEditor({
             <p className="text-slate-400 italic">Nothing to preview</p>
           )}
         </div>
+      )}
+
+      {/* Hidden file input for image toolbar button */}
+      {onImageUpload && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleFileInput}
+          className="hidden"
+          aria-label="Upload images"
+        />
       )}
     </div>
   );
