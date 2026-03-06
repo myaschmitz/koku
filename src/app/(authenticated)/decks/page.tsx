@@ -252,7 +252,7 @@ export default function DecksPage() {
                     </button>
                     <button
                       onClick={() => handleDelete(deck.id)}
-                      className="p-1 text-slate-400 hover:text-red-500 hover:cursor-pointer"
+                      className="p-1 text-slate-400 hover:text-red-500"
                       title="Delete"
                     >
                       <Trash2 className="h-4 w-4" />

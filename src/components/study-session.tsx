@@ -40,7 +40,19 @@ export function StudySession({ cards, settings }: StudySessionProps) {
   const [undoSnapshot, setUndoSnapshot] = useState<{
     index: number;
     rating: Grade;
-    original: Pick<Card, "stability" | "difficulty" | "elapsed_days" | "scheduled_days" | "reps" | "lapses" | "state" | "due" | "last_review" | "updated_at">;
+    original: Pick<
+      Card,
+      | "stability"
+      | "difficulty"
+      | "elapsed_days"
+      | "scheduled_days"
+      | "reps"
+      | "lapses"
+      | "state"
+      | "due"
+      | "last_review"
+      | "updated_at"
+    >;
   } | null>(null);
 
   const [suspendedIds, setSuspendedIds] = useState<Set<string>>(new Set());
@@ -72,76 +84,79 @@ export function StudySession({ cards, settings }: StudySessionProps) {
     }
   }, [card, currentIndex, cards, done, supabase, suspendedIds]);
 
-  const handleRate = useCallback(async (rating: Grade) => {
-    // Save snapshot for undo before modifying
-    setUndoSnapshot({
-      index: currentIndex,
-      rating,
-      original: {
-        stability: card.stability,
-        difficulty: card.difficulty,
-        elapsed_days: card.elapsed_days,
-        scheduled_days: card.scheduled_days,
-        reps: card.reps,
-        lapses: card.lapses,
-        state: card.state,
-        due: card.due,
-        last_review: card.last_review,
-        updated_at: card.updated_at,
-      },
-    });
-
-    const result = scheduleCard(card, rating, settings);
-    const updatedCard = result.card;
-
-    // Update card in DB
-    await supabase
-      .from("cards")
-      .update({
-        stability: updatedCard.stability,
-        difficulty: updatedCard.difficulty,
-        elapsed_days: updatedCard.elapsed_days,
-        scheduled_days: updatedCard.scheduled_days,
-        reps: updatedCard.reps,
-        lapses: updatedCard.lapses,
-        state: updatedCard.state,
-        due: updatedCard.due.toISOString(),
-        last_review: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", card.id);
-
-    // Insert review log
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      await supabase.from("review_logs").insert({
-        card_id: card.id,
-        user_id: user.id,
+  const handleRate = useCallback(
+    async (rating: Grade) => {
+      // Save snapshot for undo before modifying
+      setUndoSnapshot({
+        index: currentIndex,
         rating,
-        state: card.state,
-        elapsed_days: updatedCard.elapsed_days,
-        scheduled_days: updatedCard.scheduled_days,
+        original: {
+          stability: card.stability,
+          difficulty: card.difficulty,
+          elapsed_days: card.elapsed_days,
+          scheduled_days: card.scheduled_days,
+          reps: card.reps,
+          lapses: card.lapses,
+          state: card.state,
+          due: card.due,
+          last_review: card.last_review,
+          updated_at: card.updated_at,
+        },
       });
-    }
 
-    // Update stats
-    setStats((prev) => {
-      if (rating === Rating.Again) return { ...prev, again: prev.again + 1 };
-      if (rating === Rating.Hard) return { ...prev, hard: prev.hard + 1 };
-      if (rating === Rating.Good) return { ...prev, good: prev.good + 1 };
-      return { ...prev, easy: prev.easy + 1 };
-    });
+      const result = scheduleCard(card, rating, settings);
+      const updatedCard = result.card;
 
-    // Next card or done
-    if (currentIndex + 1 < cards.length) {
-      setCurrentIndex((prev) => prev + 1);
-      setShowAnswer(false);
-    } else {
-      setDone(true);
-    }
-  }, [card, currentIndex, cards.length, supabase, settings]);
+      // Update card in DB
+      await supabase
+        .from("cards")
+        .update({
+          stability: updatedCard.stability,
+          difficulty: updatedCard.difficulty,
+          elapsed_days: updatedCard.elapsed_days,
+          scheduled_days: updatedCard.scheduled_days,
+          reps: updatedCard.reps,
+          lapses: updatedCard.lapses,
+          state: updatedCard.state,
+          due: updatedCard.due.toISOString(),
+          last_review: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", card.id);
+
+      // Insert review log
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("review_logs").insert({
+          card_id: card.id,
+          user_id: user.id,
+          rating,
+          state: card.state,
+          elapsed_days: updatedCard.elapsed_days,
+          scheduled_days: updatedCard.scheduled_days,
+        });
+      }
+
+      // Update stats
+      setStats((prev) => {
+        if (rating === Rating.Again) return { ...prev, again: prev.again + 1 };
+        if (rating === Rating.Hard) return { ...prev, hard: prev.hard + 1 };
+        if (rating === Rating.Good) return { ...prev, good: prev.good + 1 };
+        return { ...prev, easy: prev.easy + 1 };
+      });
+
+      // Next card or done
+      if (currentIndex + 1 < cards.length) {
+        setCurrentIndex((prev) => prev + 1);
+        setShowAnswer(false);
+      } else {
+        setDone(true);
+      }
+    },
+    [card, currentIndex, cards.length, supabase, settings],
+  );
 
   const handleUndo = useCallback(async () => {
     if (!undoSnapshot) return;
@@ -164,7 +179,9 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       .eq("id", cards[undoSnapshot.index].id);
 
     // Delete the most recent review log for this card
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user) {
       const { data: logs } = await supabase
         .from("review_logs")
@@ -270,7 +287,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
         </div>
         <Link
           href="/decks"
-          className="cursor-pointer inline-block rounded-lg bg-blue-500 dark:bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
+          className="inline-block rounded-lg bg-blue-500 dark:bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
         >
           Back to Decks
         </Link>
@@ -287,7 +304,13 @@ export function StudySession({ cards, settings }: StudySessionProps) {
 
   const preview = getSchedulingPreview(card, settings);
 
-  const ratingButtons: Array<{ rating: Grade; label: string; shortcut: string; interval: string; color: string }> = [
+  const ratingButtons: Array<{
+    rating: Grade;
+    label: string;
+    shortcut: string;
+    interval: string;
+    color: string;
+  }> = [
     {
       rating: Rating.Again,
       label: "Again",
@@ -333,12 +356,14 @@ export function StudySession({ cards, settings }: StudySessionProps) {
           <button
             type="button"
             onClick={handleSuspend}
-            className="cursor-pointer flex items-center gap-1 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors"
+            className="flex items-center gap-1 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors"
             title="Suspend card (S)"
           >
             <PauseCircle className="h-4 w-4" />
             <span>Suspend</span>
-            <span className="ml-0.5 inline-flex items-center justify-center rounded bg-slate-200 dark:bg-slate-700 px-1 py-0.5 text-[10px] font-mono leading-none">S</span>
+            <span className="ml-0.5 inline-flex items-center justify-center rounded bg-slate-200 dark:bg-slate-700 px-1 py-0.5 text-[10px] font-mono leading-none">
+              S
+            </span>
           </button>
           <Link
             href="/decks"
@@ -394,7 +419,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       {!showAnswer ? (
         <button
           onClick={() => setShowAnswer(true)}
-          className="cursor-pointer w-full rounded-lg bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 py-3 text-sm font-medium hover:bg-slate-700 dark:hover:bg-slate-300 transition-colors"
+          className="w-full rounded-lg bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 py-3 text-sm font-medium hover:bg-slate-700 dark:hover:bg-slate-300 transition-colors"
         >
           Show Answer
           <span className="ml-2 text-xs opacity-60">Space</span>
@@ -405,7 +430,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
             <button
               key={btn.label}
               onClick={() => handleRate(btn.rating)}
-              className={`cursor-pointer rounded-lg py-3 text-white text-sm font-medium transition-colors ${btn.color}`}
+              className={`rounded-lg py-3 text-white text-sm font-medium transition-colors ${btn.color}`}
             >
               <div>
                 {btn.label}
@@ -423,9 +448,10 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       {undoSnapshot && (
         <button
           onClick={handleUndo}
-          className="cursor-pointer w-full text-center text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+          className="w-full text-center text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
         >
-          Undo last rating <span className="opacity-60 font-mono text-xs">U</span>
+          Undo last rating{" "}
+          <span className="opacity-60 font-mono text-xs">U</span>
         </button>
       )}
     </div>

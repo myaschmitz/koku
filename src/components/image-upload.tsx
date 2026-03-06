@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useRef, useCallback, useImperativeHandle, forwardRef } from "react";
+import {
+  useState,
+  useRef,
+  useCallback,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ImagePlus, X, Loader2 } from "lucide-react";
 
@@ -40,11 +46,9 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
               toType: "image/jpeg",
               quality: 0.85,
             });
-            processedFile = new File(
-              [blob as Blob],
-              "converted.jpg",
-              { type: "image/jpeg" }
-            );
+            processedFile = new File([blob as Blob], "converted.jpg", {
+              type: "image/jpeg",
+            });
           } catch {
             setError("Failed to convert HEIC image");
             return null;
@@ -69,7 +73,7 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
 
         return publicUrl;
       },
-      [supabase, storagePath]
+      [supabase, storagePath],
     );
 
     const processFiles = useCallback(
@@ -78,7 +82,7 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
           (f) =>
             f.type.startsWith("image/") ||
             f.name?.toLowerCase().endsWith(".heic") ||
-            f.name?.toLowerCase().endsWith(".heif")
+            f.name?.toLowerCase().endsWith(".heif"),
         );
         if (imageFiles.length === 0) return;
 
@@ -96,7 +100,7 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
         }
         setUploading(false);
       },
-      [images, onChange, uploadFile]
+      [images, onChange, uploadFile],
     );
 
     // Expose processFiles so CardForm can route pastes here
@@ -109,7 +113,7 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
         const files = Array.from(e.dataTransfer.files);
         await processFiles(files);
       },
-      [processFiles]
+      [processFiles],
     );
 
     const handleFileInput = useCallback(
@@ -118,7 +122,7 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
         await processFiles(files);
         e.target.value = "";
       },
-      [processFiles]
+      [processFiles],
     );
 
     const removeImage = useCallback(
@@ -129,7 +133,7 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
         }
         onChange(images.filter((img) => img !== url));
       },
-      [images, onChange, supabase]
+      [images, onChange, supabase],
     );
 
     return (
@@ -160,7 +164,7 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
                   type="button"
                   aria-label="Remove image"
                   onClick={() => removeImage(url)}
-                  className="cursor-pointer absolute -top-1.5 -right-1.5 rounded-full bg-red-500 p-0.5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute -top-1.5 -right-1.5 rounded-full bg-red-500 p-0.5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -176,16 +180,12 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
           ) : (
             <ImagePlus className="h-4 w-4" />
           )}
-          <span>
-            {uploading
-              ? "Uploading..."
-              : "Paste, drag & drop, or "}
-          </span>
+          <span>{uploading ? "Uploading..." : "Paste, drag & drop, or "}</span>
           {!uploading && (
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="cursor-pointer text-blue-500 hover:text-blue-600 font-medium"
+              className="text-blue-500 hover:text-blue-600 font-medium"
             >
               browse
             </button>
@@ -204,5 +204,5 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
         {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
       </div>
     );
-  }
+  },
 );

@@ -51,7 +51,10 @@ export function TagInput({ selectedTags, onChange, userId }: TagInputProps) {
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setShowDropdown(false);
       }
     };
@@ -63,7 +66,7 @@ export function TagInput({ selectedTags, onChange, userId }: TagInputProps) {
   const query = input.trim().toLowerCase();
 
   const filteredTags = allTags.filter(
-    (t) => !selectedIds.has(t.id) && t.name.toLowerCase().includes(query)
+    (t) => !selectedIds.has(t.id) && t.name.toLowerCase().includes(query),
   );
 
   // Show suggested tags that haven't been created yet
@@ -72,14 +75,20 @@ export function TagInput({ selectedTags, onChange, userId }: TagInputProps) {
     : SUGGESTED_TAGS.filter(
         (s) =>
           !allTags.some((t) => t.name === s) &&
-          !selectedTags.some((t) => t.name === s)
+          !selectedTags.some((t) => t.name === s),
       );
 
   const exactMatch = allTags.some((t) => t.name.toLowerCase() === query);
   const canCreateNew =
-    query.length > 0 && !exactMatch && !selectedTags.some((t) => t.name.toLowerCase() === query);
+    query.length > 0 &&
+    !exactMatch &&
+    !selectedTags.some((t) => t.name.toLowerCase() === query);
 
-  const options: { type: "existing" | "create" | "suggested"; tag?: Tag; name?: string }[] = [
+  const options: {
+    type: "existing" | "create" | "suggested";
+    tag?: Tag;
+    name?: string;
+  }[] = [
     ...filteredTags.map((tag) => ({ type: "existing" as const, tag })),
     ...(canCreateNew ? [{ type: "create" as const, name: query }] : []),
     ...suggestedNew.map((name) => ({ type: "suggested" as const, name })),
@@ -93,7 +102,7 @@ export function TagInput({ selectedTags, onChange, userId }: TagInputProps) {
       setHighlightIndex(-1);
       inputRef.current?.focus();
     },
-    [selectedTags, onChange]
+    [selectedTags, onChange],
   );
 
   const createAndAddTag = useCallback(
@@ -113,7 +122,9 @@ export function TagInput({ selectedTags, onChange, userId }: TagInputProps) {
           .eq("name", name)
           .single();
         if (existing) {
-          setAllTags((prev) => (prev.some((t) => t.id === existing.id) ? prev : [...prev, existing]));
+          setAllTags((prev) =>
+            prev.some((t) => t.id === existing.id) ? prev : [...prev, existing],
+          );
           onChange([...selectedTags, existing]);
         }
       } else if (data) {
@@ -126,14 +137,14 @@ export function TagInput({ selectedTags, onChange, userId }: TagInputProps) {
       setHighlightIndex(-1);
       inputRef.current?.focus();
     },
-    [supabase, userId, selectedTags, onChange]
+    [supabase, userId, selectedTags, onChange],
   );
 
   const removeTag = useCallback(
     (tagId: string) => {
       onChange(selectedTags.filter((t) => t.id !== tagId));
     },
-    [selectedTags, onChange]
+    [selectedTags, onChange],
   );
 
   const selectOption = useCallback(
@@ -142,11 +153,14 @@ export function TagInput({ selectedTags, onChange, userId }: TagInputProps) {
       if (!option) return;
       if (option.type === "existing" && option.tag) {
         addExistingTag(option.tag);
-      } else if ((option.type === "create" || option.type === "suggested") && option.name) {
+      } else if (
+        (option.type === "create" || option.type === "suggested") &&
+        option.name
+      ) {
         createAndAddTag(option.name);
       }
     },
-    [options, addExistingTag, createAndAddTag]
+    [options, addExistingTag, createAndAddTag],
   );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -163,7 +177,11 @@ export function TagInput({ selectedTags, onChange, userId }: TagInputProps) {
       } else if (canCreateNew) {
         createAndAddTag(query);
       }
-    } else if (e.key === "Backspace" && input === "" && selectedTags.length > 0) {
+    } else if (
+      e.key === "Backspace" &&
+      input === "" &&
+      selectedTags.length > 0
+    ) {
       removeTag(selectedTags[selectedTags.length - 1].id);
     } else if (e.key === "Escape") {
       setShowDropdown(false);
@@ -191,7 +209,7 @@ export function TagInput({ selectedTags, onChange, userId }: TagInputProps) {
                 e.stopPropagation();
                 removeTag(tag.id);
               }}
-              className="cursor-pointer hover:text-blue-900 dark:hover:text-blue-100"
+              className="hover:text-blue-900 dark:hover:text-blue-100"
             >
               <X className="h-3 w-3" />
             </button>
@@ -216,9 +234,13 @@ export function TagInput({ selectedTags, onChange, userId }: TagInputProps) {
         <div className="absolute z-10 mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg max-h-48 overflow-y-auto">
           {options.map((option, i) => (
             <button
-              key={option.type === "existing" ? option.tag!.id : `${option.type}-${option.name}`}
+              key={
+                option.type === "existing"
+                  ? option.tag!.id
+                  : `${option.type}-${option.name}`
+              }
               type="button"
-              className={`cursor-pointer w-full text-left px-3 py-2 text-sm transition-colors ${
+              className={`w-full text-left px-3 py-2 text-sm transition-colors ${
                 i === highlightIndex
                   ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
                   : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -231,7 +253,8 @@ export function TagInput({ selectedTags, onChange, userId }: TagInputProps) {
             >
               {option.type === "create" ? (
                 <>
-                  Create &ldquo;<span className="font-medium">{option.name}</span>&rdquo;
+                  Create &ldquo;
+                  <span className="font-medium">{option.name}</span>&rdquo;
                 </>
               ) : option.type === "suggested" ? (
                 <span className="text-slate-400 dark:text-slate-500">

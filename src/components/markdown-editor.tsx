@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Bold, Italic, Code, Link, List, Heading2, ImagePlus, Loader2 } from "lucide-react";
+import {
+  Bold,
+  Italic,
+  Code,
+  Link,
+  List,
+  Heading2,
+  ImagePlus,
+  Loader2,
+} from "lucide-react";
 import { Markdown } from "@/components/markdown";
 
 interface MarkdownEditorProps {
@@ -17,12 +26,16 @@ function insertAround(
   textarea: HTMLTextAreaElement,
   before: string,
   after: string,
-  onChange: (v: string) => void
+  onChange: (v: string) => void,
 ) {
   const { selectionStart, selectionEnd, value } = textarea;
   const selected = value.slice(selectionStart, selectionEnd);
   const newValue =
-    value.slice(0, selectionStart) + before + selected + after + value.slice(selectionEnd);
+    value.slice(0, selectionStart) +
+    before +
+    selected +
+    after +
+    value.slice(selectionEnd);
   onChange(newValue);
   // Restore cursor after React re-renders
   requestAnimationFrame(() => {
@@ -35,7 +48,7 @@ function insertAround(
 function insertAtLineStart(
   textarea: HTMLTextAreaElement,
   prefix: string,
-  onChange: (v: string) => void
+  onChange: (v: string) => void,
 ) {
   const { selectionStart, value } = textarea;
   const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
@@ -43,21 +56,24 @@ function insertAtLineStart(
   onChange(newValue);
   requestAnimationFrame(() => {
     textarea.focus();
-    textarea.selectionStart = textarea.selectionEnd = selectionStart + prefix.length;
+    textarea.selectionStart = textarea.selectionEnd =
+      selectionStart + prefix.length;
   });
 }
 
 function insertText(
   textarea: HTMLTextAreaElement,
   text: string,
-  onChange: (v: string) => void
+  onChange: (v: string) => void,
 ) {
   const { selectionStart, value } = textarea;
-  const newValue = value.slice(0, selectionStart) + text + value.slice(selectionStart);
+  const newValue =
+    value.slice(0, selectionStart) + text + value.slice(selectionStart);
   onChange(newValue);
   requestAnimationFrame(() => {
     textarea.focus();
-    textarea.selectionStart = textarea.selectionEnd = selectionStart + text.length;
+    textarea.selectionStart = textarea.selectionEnd =
+      selectionStart + text.length;
   });
 }
 
@@ -81,7 +97,7 @@ export function MarkdownEditor({
         (f) =>
           f.type.startsWith("image/") ||
           f.name?.toLowerCase().endsWith(".heic") ||
-          f.name?.toLowerCase().endsWith(".heif")
+          f.name?.toLowerCase().endsWith(".heif"),
       );
       if (imageFiles.length === 0) return;
 
@@ -94,7 +110,7 @@ export function MarkdownEditor({
       }
       setUploading(false);
     },
-    [onImageUpload, onChange]
+    [onImageUpload, onChange],
   );
 
   const handlePaste = useCallback(
@@ -116,7 +132,7 @@ export function MarkdownEditor({
         await handleImageFiles(files);
       }
     },
-    [onImageUpload, handleImageFiles]
+    [onImageUpload, handleImageFiles],
   );
 
   const handleDrop = useCallback(
@@ -126,14 +142,14 @@ export function MarkdownEditor({
         (f) =>
           f.type.startsWith("image/") ||
           f.name?.toLowerCase().endsWith(".heic") ||
-          f.name?.toLowerCase().endsWith(".heif")
+          f.name?.toLowerCase().endsWith(".heif"),
       );
       if (files.length > 0) {
         e.preventDefault();
         await handleImageFiles(files);
       }
     },
-    [onImageUpload, handleImageFiles]
+    [onImageUpload, handleImageFiles],
   );
 
   const handleToolbar = useCallback(
@@ -167,7 +183,7 @@ export function MarkdownEditor({
           break;
       }
     },
-    [onChange]
+    [onChange],
   );
 
   const handleFileInput = useCallback(
@@ -176,7 +192,7 @@ export function MarkdownEditor({
       await handleImageFiles(files);
       e.target.value = "";
     },
-    [handleImageFiles]
+    [handleImageFiles],
   );
 
   const toolbarButtons = [
@@ -187,7 +203,13 @@ export function MarkdownEditor({
     { action: "list", icon: List, title: "List" },
     { action: "heading", icon: Heading2, title: "Heading" },
     ...(onImageUpload
-      ? [{ action: "image", icon: uploading ? Loader2 : ImagePlus, title: "Insert image" }]
+      ? [
+          {
+            action: "image",
+            icon: uploading ? Loader2 : ImagePlus,
+            title: "Insert image",
+          },
+        ]
       : []),
   ];
 
@@ -204,7 +226,7 @@ export function MarkdownEditor({
                 title={btn.title}
                 onClick={() => handleToolbar(btn.action)}
                 disabled={btn.action === "image" && uploading}
-                className={`cursor-pointer p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors disabled:opacity-50 ${
+                className={`p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors disabled:opacity-50 ${
                   btn.action === "image" && uploading ? "animate-spin" : ""
                 }`}
               >
@@ -216,7 +238,7 @@ export function MarkdownEditor({
           <button
             type="button"
             onClick={() => setMode("write")}
-            className={`cursor-pointer px-2.5 py-1 rounded transition-colors ${
+            className={`px-2.5 py-1 rounded transition-colors ${
               mode === "write"
                 ? "bg-white dark:bg-slate-600 text-slate-900 dark:text-slate-100 shadow-sm"
                 : "text-slate-500 dark:text-slate-400"
@@ -227,7 +249,7 @@ export function MarkdownEditor({
           <button
             type="button"
             onClick={() => setMode("preview")}
-            className={`cursor-pointer px-2.5 py-1 rounded transition-colors ${
+            className={`px-2.5 py-1 rounded transition-colors ${
               mode === "preview"
                 ? "bg-white dark:bg-slate-600 text-slate-900 dark:text-slate-100 shadow-sm"
                 : "text-slate-500 dark:text-slate-400"

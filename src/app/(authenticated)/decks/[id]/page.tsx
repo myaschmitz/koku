@@ -19,7 +19,6 @@ import type { Card, Deck, Tag } from "@/lib/types";
 import { CreateCardModal } from "@/components/create-card-modal";
 import { Markdown } from "@/components/markdown";
 
-
 const STATE_LABELS = ["New", "Learning", "Review", "Relearning"];
 const STATE_COLORS = [
   "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
@@ -42,14 +41,20 @@ function CardActions({
   hideUntilHover?: boolean;
 }) {
   return (
-    <div className={`flex gap-1 ${hideUntilHover ? "opacity-0 group-hover:opacity-100 transition-opacity" : ""}`}>
+    <div
+      className={`flex gap-1 ${hideUntilHover ? "opacity-0 group-hover:opacity-100 transition-opacity" : ""}`}
+    >
       <button
         type="button"
         onClick={() => onToggleSuspend(card.id, card.suspended)}
-        className={`p-1 hover:cursor-pointer ${card.suspended ? "text-yellow-500 hover:text-yellow-600" : "text-slate-400 hover:text-yellow-500"}`}
+        className={`p-1 ${card.suspended ? "text-yellow-500 hover:text-yellow-600" : "text-slate-400 hover:text-yellow-500"}`}
         title={card.suspended ? "Unsuspend" : "Suspend"}
       >
-        {card.suspended ? <PlayCircle className="h-4 w-4" /> : <PauseCircle className="h-4 w-4" />}
+        {card.suspended ? (
+          <PlayCircle className="h-4 w-4" />
+        ) : (
+          <PauseCircle className="h-4 w-4" />
+        )}
       </button>
       <Link
         href={`/cards/${card.id}/edit`}
@@ -61,7 +66,7 @@ function CardActions({
       <button
         type="button"
         onClick={() => onDelete(card.id)}
-        className="p-1 text-slate-400 hover:text-red-500 hover:cursor-pointer"
+        className="p-1 text-slate-400 hover:text-red-500"
         title="Delete"
       >
         <Trash2 className="h-4 w-4" />
@@ -226,14 +231,19 @@ export default function DeckDetailPage() {
     }
   };
 
-  const handleToggleSuspend = async (cardId: string, currentSuspended: boolean) => {
+  const handleToggleSuspend = async (
+    cardId: string,
+    currentSuspended: boolean,
+  ) => {
     const newSuspended = !currentSuspended;
     await supabase
       .from("cards")
       .update({ suspended: newSuspended, updated_at: new Date().toISOString() })
       .eq("id", cardId);
     setCards((prev) =>
-      prev.map((c) => (c.id === cardId ? { ...c, suspended: newSuspended } : c))
+      prev.map((c) =>
+        c.id === cardId ? { ...c, suspended: newSuspended } : c,
+      ),
     );
     // Update due count since suspended cards are excluded
     const now = new Date().toISOString();
@@ -304,7 +314,7 @@ export default function DeckDetailPage() {
             <button
               type="button"
               onClick={() => setShowCreateModal(true)}
-              className="cursor-pointer rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               + New Card
             </button>
@@ -319,7 +329,7 @@ export default function DeckDetailPage() {
                 key={mode}
                 type="button"
                 onClick={() => setViewMode(mode)}
-                className={`cursor-pointer p-2 transition-colors ${
+                className={`p-2 transition-colors ${
                   viewMode === mode
                     ? "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                     : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -343,7 +353,7 @@ export default function DeckDetailPage() {
             <button
               type="button"
               onClick={() => setShowCreateModal(true)}
-              className="cursor-pointer rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               + New Card
             </button>
@@ -359,7 +369,7 @@ export default function DeckDetailPage() {
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-colors"
+            className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-colors"
           >
             + New Card
           </button>
@@ -376,13 +386,20 @@ export default function DeckDetailPage() {
                   tabIndex={0}
                   aria-label={`View card: ${card.front_title}`}
                   onClick={() => router.push(`/cards/${card.id}`)}
-                  onKeyDown={(e) => { if (e.key === "Enter") router.push(`/cards/${card.id}`); }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") router.push(`/cards/${card.id}`);
+                  }}
                   className="group block cursor-pointer rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0" />
                     <div onClick={(e) => e.stopPropagation()}>
-                      <CardActions card={card} onDelete={handleDeleteCard} onToggleSuspend={handleToggleSuspend} hideUntilHover />
+                      <CardActions
+                        card={card}
+                        onDelete={handleDeleteCard}
+                        onToggleSuspend={handleToggleSuspend}
+                        hideUntilHover
+                      />
                     </div>
                   </div>
                   <CardFrontBack card={card} compact />
@@ -402,7 +419,7 @@ export default function DeckDetailPage() {
                     key={card.id}
                     type="button"
                     onClick={() => setSelectedCardId(card.id)}
-                    className={`cursor-pointer w-full text-left rounded-lg border p-3 transition-colors ${
+                    className={`w-full text-left rounded-lg border p-3 transition-colors ${
                       selectedCardId === card.id
                         ? "border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30"
                         : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600"
@@ -436,11 +453,22 @@ export default function DeckDetailPage() {
                       <div className="flex gap-1">
                         <button
                           type="button"
-                          onClick={() => handleToggleSuspend(selectedCard.id, selectedCard.suspended)}
-                          className={`p-1.5 hover:cursor-pointer ${selectedCard.suspended ? "text-yellow-500 hover:text-yellow-600" : "text-slate-400 hover:text-yellow-500"}`}
-                          title={selectedCard.suspended ? "Unsuspend" : "Suspend"}
+                          onClick={() =>
+                            handleToggleSuspend(
+                              selectedCard.id,
+                              selectedCard.suspended,
+                            )
+                          }
+                          className={`p-1.5 ${selectedCard.suspended ? "text-yellow-500 hover:text-yellow-600" : "text-slate-400 hover:text-yellow-500"}`}
+                          title={
+                            selectedCard.suspended ? "Unsuspend" : "Suspend"
+                          }
                         >
-                          {selectedCard.suspended ? <PlayCircle className="h-4 w-4" /> : <PauseCircle className="h-4 w-4" />}
+                          {selectedCard.suspended ? (
+                            <PlayCircle className="h-4 w-4" />
+                          ) : (
+                            <PauseCircle className="h-4 w-4" />
+                          )}
                         </button>
                         <Link
                           href={`/cards/${selectedCard.id}/edit`}
@@ -516,7 +544,12 @@ export default function DeckDetailPage() {
                     >
                       View card →
                     </Link>
-                    <CardActions card={card} onDelete={handleDeleteCard} onToggleSuspend={handleToggleSuspend} hideUntilHover />
+                    <CardActions
+                      card={card}
+                      onDelete={handleDeleteCard}
+                      onToggleSuspend={handleToggleSuspend}
+                      hideUntilHover
+                    />
                   </div>
                   <CardFrontBack card={card} />
                   <CardMeta card={card} tags={cardTagsMap[card.id] ?? []} />

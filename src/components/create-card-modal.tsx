@@ -28,7 +28,7 @@ export function CreateCardModal({
     (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     },
-    [onClose]
+    [onClose],
   );
 
   useEffect(() => {
@@ -56,9 +56,9 @@ export function CreateCardModal({
       .single();
 
     if (!error && card && data.tags.length > 0) {
-      await supabase.from("card_tags").insert(
-        data.tags.map((tag) => ({ card_id: card.id, tag_id: tag.id }))
-      );
+      await supabase
+        .from("card_tags")
+        .insert(data.tags.map((tag) => ({ card_id: card.id, tag_id: tag.id })));
     }
 
     if (!error) {
@@ -75,11 +75,7 @@ export function CreateCardModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-[5vh]">
-      <div
-        className="fixed inset-0"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
       <div className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
@@ -87,7 +83,7 @@ export function CreateCardModal({
           </h2>
           <button
             onClick={onClose}
-            className="cursor-pointer rounded-md p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            className="rounded-md p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>

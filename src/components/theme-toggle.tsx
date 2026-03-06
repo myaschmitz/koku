@@ -27,7 +27,7 @@ export function ThemeToggle() {
           key={opt.value}
           onClick={() => setTheme(opt.value)}
           title={opt.title}
-          className={`px-2 py-1 rounded-md text-sm transition-colors cursor-pointer ${
+          className={`px-2 py-1 rounded-md text-sm transition-colors ${
             theme === opt.value
               ? "bg-white dark:bg-slate-600 shadow-sm"
               : "hover:bg-slate-300 dark:hover:bg-slate-600"

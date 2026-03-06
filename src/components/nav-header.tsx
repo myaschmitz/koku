@@ -35,7 +35,7 @@ export function NavHeader() {
           </Link>
           <button
             onClick={handleSignOut}
-            className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors hover:cursor-pointer"
+            className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
           >
             Sign out
           </button>

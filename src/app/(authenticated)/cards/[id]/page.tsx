@@ -86,16 +86,22 @@ export default function CardViewPage() {
           <button
             type="button"
             onClick={handleToggleSuspend}
-            className={`cursor-pointer rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+            className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
               card.suspended
                 ? "border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/30"
                 : "border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
             {card.suspended ? (
-              <><PlayCircle className="inline h-4 w-4 mr-1" />Unsuspend</>
+              <>
+                <PlayCircle className="inline h-4 w-4 mr-1" />
+                Unsuspend
+              </>
             ) : (
-              <><PauseCircle className="inline h-4 w-4 mr-1" />Suspend</>
+              <>
+                <PauseCircle className="inline h-4 w-4 mr-1" />
+                Suspend
+              </>
             )}
           </button>
           <Link

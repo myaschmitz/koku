@@ -110,7 +110,11 @@ export default function SettingsPage() {
         })
         .eq("user_id", settings.user_id);
 
-      setSettings({ ...settings, vacation_mode: true, vacation_started_at: now });
+      setSettings({
+        ...settings,
+        vacation_mode: true,
+        vacation_started_at: now,
+      });
     } else {
       // Turn off vacation mode — shift all card due dates forward
       const vacationStart = new Date(settings.vacation_started_at!);
@@ -147,7 +151,11 @@ export default function SettingsPage() {
         })
         .eq("user_id", settings.user_id);
 
-      setSettings({ ...settings, vacation_mode: false, vacation_started_at: null });
+      setSettings({
+        ...settings,
+        vacation_mode: false,
+        vacation_started_at: null,
+      });
     }
 
     setTogglingVacation(false);
@@ -250,7 +258,7 @@ export default function SettingsPage() {
                   ...settings,
                   max_new_cards_per_day: Math.max(
                     1,
-                    Math.min(100, Number(e.target.value) || 1)
+                    Math.min(100, Number(e.target.value) || 1),
                   ),
                 })
               }
@@ -281,7 +289,7 @@ export default function SettingsPage() {
                 <button
                   key={opt.value}
                   onClick={() => handleThemeChange(opt.value)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
                     theme === opt.value
                       ? "bg-white dark:bg-slate-600 shadow-sm text-slate-900 dark:text-slate-100"
                       : "text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-600"
@@ -306,7 +314,8 @@ export default function SettingsPage() {
                 Vacation Mode
               </h2>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Pause all cards so they don&apos;t pile up while you&apos;re away.
+                Pause all cards so they don&apos;t pile up while you&apos;re
+                away.
               </p>
             </div>
           </div>
@@ -314,7 +323,7 @@ export default function SettingsPage() {
             aria-label="Toggle vacation mode"
             onClick={handleVacationToggle}
             disabled={togglingVacation}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer disabled:opacity-50 ${
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
               settings.vacation_mode
                 ? "bg-emerald-500"
                 : "bg-slate-300 dark:bg-slate-600"
@@ -332,13 +341,17 @@ export default function SettingsPage() {
             <p className="text-sm text-emerald-700 dark:text-emerald-300">
               Vacation mode is active since{" "}
               <span className="font-medium">
-                {new Date(settings.vacation_started_at).toLocaleDateString(undefined, {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+                {new Date(settings.vacation_started_at).toLocaleDateString(
+                  undefined,
+                  {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  },
+                )}
               </span>
-              . When you turn it off, all card due dates will be shifted forward so nothing piles up.
+              . When you turn it off, all card due dates will be shifted forward
+              so nothing piles up.
             </p>
           </div>
         )}
@@ -363,7 +376,7 @@ export default function SettingsPage() {
               await supabase.auth.signOut();
               window.location.href = "/login";
             }}
-            className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+            className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
           >
             Sign out
           </button>
@@ -373,7 +386,7 @@ export default function SettingsPage() {
               setDeleteConfirm("");
               setDeleteError("");
             }}
-            className="rounded-lg border border-red-300 dark:border-red-700 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+            className="rounded-lg border border-red-300 dark:border-red-700 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           >
             Delete account
           </button>
@@ -413,7 +426,7 @@ export default function SettingsPage() {
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="rounded-lg px-4 py-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors cursor-pointer"
+                className="rounded-lg px-4 py-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
               >
                 Cancel
               </button>
@@ -432,13 +445,13 @@ export default function SettingsPage() {
                     window.location.href = "/login";
                   } else {
                     setDeleteError(
-                      "Failed to delete account. Please try again."
+                      "Failed to delete account. Please try again.",
                     );
                     setDeleting(false);
                   }
                 }}
                 disabled={deleting || deleteConfirm !== "delete"}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors disabled:opacity-50 cursor-pointer"
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 {deleting ? "Deleting..." : "Delete Account"}
               </button>
@@ -452,7 +465,7 @@ export default function SettingsPage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="rounded-lg bg-blue-500 dark:bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors disabled:opacity-50 cursor-pointer"
+          className="rounded-lg bg-blue-500 dark:bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors disabled:opacity-50"
         >
           {saving ? "Saving..." : "Save Changes"}
         </button>
