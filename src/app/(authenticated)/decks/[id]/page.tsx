@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -146,6 +146,11 @@ export default function DeckDetailPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const columnDetailRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    columnDetailRef.current?.scrollTo(0, 0);
+  }, [selectedCardId]);
 
   const refreshCards = useCallback(async () => {
     const { data: cardsData } = await supabase
@@ -445,7 +450,7 @@ export default function DeckDetailPage() {
               </div>
 
               {/* Right panel - selected card detail */}
-              <div className="w-2/3 min-w-0 overflow-y-auto">
+              <div ref={columnDetailRef} className="w-2/3 min-w-0 overflow-y-auto">
                 {selectedCard ? (
                   <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
                     <div className="flex items-start justify-between mb-4">
