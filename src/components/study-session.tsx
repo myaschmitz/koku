@@ -6,6 +6,7 @@ import { scheduleCard, getSchedulingPreview, Rating } from "@/lib/srs";
 import { Markdown } from "@/components/markdown";
 import { ImageGrid } from "@/components/image-grid";
 import Link from "next/link";
+import { PauseCircle } from "lucide-react";
 import type { Grade } from "ts-fsrs";
 import type { Card, UserSettings } from "@/lib/types";
 
@@ -42,7 +43,34 @@ export function StudySession({ cards, settings }: StudySessionProps) {
     original: Pick<Card, "stability" | "difficulty" | "elapsed_days" | "scheduled_days" | "reps" | "lapses" | "state" | "due" | "last_review" | "updated_at">;
   } | null>(null);
 
+  const [suspendedIds, setSuspendedIds] = useState<Set<string>>(new Set());
+
   const card = cards[currentIndex];
+
+  const handleSuspend = useCallback(async () => {
+    if (!card || done) return;
+
+    // Suspend card in DB
+    await supabase
+      .from("cards")
+      .update({ suspended: true, updated_at: new Date().toISOString() })
+      .eq("id", card.id);
+
+    setSuspendedIds((prev) => new Set(prev).add(card.id));
+
+    // Skip to next non-suspended card or finish
+    let nextIndex = currentIndex + 1;
+    while (nextIndex < cards.length && suspendedIds.has(cards[nextIndex].id)) {
+      nextIndex++;
+    }
+
+    if (nextIndex < cards.length) {
+      setCurrentIndex(nextIndex);
+      setShowAnswer(false);
+    } else {
+      setDone(true);
+    }
+  }, [card, currentIndex, cards, done, supabase, suspendedIds]);
 
   const handleRate = useCallback(async (rating: Grade) => {
     // Save snapshot for undo before modifying
@@ -190,11 +218,15 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       if (e.key === "u" || e.key === "U") {
         handleUndo();
       }
+
+      if (e.key === "s" || e.key === "S") {
+        handleSuspend();
+      }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showAnswer, done, handleRate, handleUndo]);
+  }, [showAnswer, done, handleRate, handleUndo, handleSuspend]);
 
   if (done) {
     return (
@@ -202,7 +234,12 @@ export function StudySession({ cards, settings }: StudySessionProps) {
         <h2 className="text-2xl font-bold">Session Complete!</h2>
         <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
           <p className="text-lg font-medium mb-4">
-            {stats.total} cards reviewed
+            {stats.total - suspendedIds.size} cards reviewed
+            {suspendedIds.size > 0 && (
+              <span className="text-sm text-slate-400 ml-2">
+                ({suspendedIds.size} suspended)
+              </span>
+            )}
           </p>
           <div className="grid grid-cols-4 gap-4 text-sm">
             <div>
@@ -239,6 +276,13 @@ export function StudySession({ cards, settings }: StudySessionProps) {
         </Link>
       </div>
     );
+  }
+
+  const activeCount = cards.length - suspendedIds.size;
+  // Find the position among non-suspended cards
+  let activeIndex = 0;
+  for (let i = 0; i < currentIndex; i++) {
+    if (!suspendedIds.has(cards[i].id)) activeIndex++;
   }
 
   const preview = getSchedulingPreview(card, settings);
@@ -283,14 +327,26 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       {/* Progress */}
       <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
         <span>
-          Card {currentIndex + 1} of {cards.length}
+          Card {activeIndex + 1} of {activeCount}
         </span>
-        <Link
-          href="/decks"
-          className="hover:text-slate-700 dark:hover:text-slate-300"
-        >
-          End session
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleSuspend}
+            className="cursor-pointer flex items-center gap-1 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors"
+            title="Suspend card (S)"
+          >
+            <PauseCircle className="h-4 w-4" />
+            <span>Suspend</span>
+            <span className="ml-0.5 inline-flex items-center justify-center rounded bg-slate-200 dark:bg-slate-700 px-1 py-0.5 text-[10px] font-mono leading-none">S</span>
+          </button>
+          <Link
+            href="/decks"
+            className="hover:text-slate-700 dark:hover:text-slate-300"
+          >
+            End session
+          </Link>
+        </div>
       </div>
 
       {/* Progress bar */}
@@ -298,7 +354,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
         <div
           className="h-full bg-blue-500 transition-all duration-300"
           style={{
-            width: `${((currentIndex) / cards.length) * 100}%`,
+            width: `${activeCount > 0 ? (activeIndex / activeCount) * 100 : 0}%`,
           }}
         />
       </div>

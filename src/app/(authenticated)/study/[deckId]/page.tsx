@@ -29,6 +29,7 @@ export default function StudyDeckPage() {
         .select("*")
         .eq("user_id", user.id)
         .eq("deck_id", deckId)
+        .eq("suspended", false)
         .lte("due", now)
         .order("state", { ascending: true })
         .order("due", { ascending: true });

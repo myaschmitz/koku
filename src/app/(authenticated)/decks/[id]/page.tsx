@@ -12,6 +12,8 @@ import {
   LayoutGrid,
   Columns,
   List,
+  PauseCircle,
+  PlayCircle,
 } from "lucide-react";
 import type { Card, Deck, Tag } from "@/lib/types";
 import { CreateCardModal } from "@/components/create-card-modal";
@@ -31,14 +33,24 @@ type ViewMode = "grid" | "column" | "list";
 function CardActions({
   card,
   onDelete,
+  onToggleSuspend,
   hideUntilHover,
 }: {
   card: Card;
   onDelete: (id: string) => void;
+  onToggleSuspend: (id: string, suspended: boolean) => void;
   hideUntilHover?: boolean;
 }) {
   return (
     <div className={`flex gap-1 ${hideUntilHover ? "opacity-0 group-hover:opacity-100 transition-opacity" : ""}`}>
+      <button
+        type="button"
+        onClick={() => onToggleSuspend(card.id, card.suspended)}
+        className={`p-1 hover:cursor-pointer ${card.suspended ? "text-yellow-500 hover:text-yellow-600" : "text-slate-400 hover:text-yellow-500"}`}
+        title={card.suspended ? "Unsuspend" : "Suspend"}
+      >
+        {card.suspended ? <PlayCircle className="h-4 w-4" /> : <PauseCircle className="h-4 w-4" />}
+      </button>
       <Link
         href={`/cards/${card.id}/edit`}
         className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
@@ -92,6 +104,11 @@ function CardFrontBack({ card, compact }: { card: Card; compact?: boolean }) {
 function CardMeta({ card, tags }: { card: Card; tags: Tag[] }) {
   return (
     <div className="flex flex-wrap items-center gap-2 mt-3">
+      {card.suspended && (
+        <span className="rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 px-2 py-0.5 text-xs font-medium">
+          Suspended
+        </span>
+      )}
       <span
         className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATE_COLORS[card.state]}`}
       >
@@ -139,6 +156,7 @@ export default function DeckDetailPage() {
       .from("cards")
       .select("*", { count: "exact", head: true })
       .eq("deck_id", deckId)
+      .eq("suspended", false)
       .lte("due", now);
 
     if (cardsData && cardsData.length > 0) {
@@ -208,6 +226,26 @@ export default function DeckDetailPage() {
     if (selectedCardId === cardId) {
       setSelectedCardId(remaining.length > 0 ? remaining[0].id : null);
     }
+  };
+
+  const handleToggleSuspend = async (cardId: string, currentSuspended: boolean) => {
+    const newSuspended = !currentSuspended;
+    await supabase
+      .from("cards")
+      .update({ suspended: newSuspended, updated_at: new Date().toISOString() })
+      .eq("id", cardId);
+    setCards((prev) =>
+      prev.map((c) => (c.id === cardId ? { ...c, suspended: newSuspended } : c))
+    );
+    // Update due count since suspended cards are excluded
+    const now = new Date().toISOString();
+    const { count } = await supabase
+      .from("cards")
+      .select("*", { count: "exact", head: true })
+      .eq("deck_id", deckId)
+      .eq("suspended", false)
+      .lte("due", now);
+    setDueCount(count ?? 0);
   };
 
   if (loading) {
@@ -346,7 +384,7 @@ export default function DeckDetailPage() {
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0" />
                     <div onClick={(e) => e.stopPropagation()}>
-                      <CardActions card={card} onDelete={handleDeleteCard} hideUntilHover />
+                      <CardActions card={card} onDelete={handleDeleteCard} onToggleSuspend={handleToggleSuspend} hideUntilHover />
                     </div>
                   </div>
                   <CardFrontBack card={card} compact />
@@ -398,6 +436,14 @@ export default function DeckDetailPage() {
                     <div className="flex items-start justify-between mb-4">
                       <div />
                       <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleSuspend(selectedCard.id, selectedCard.suspended)}
+                          className={`p-1.5 hover:cursor-pointer ${selectedCard.suspended ? "text-yellow-500 hover:text-yellow-600" : "text-slate-400 hover:text-yellow-500"}`}
+                          title={selectedCard.suspended ? "Unsuspend" : "Suspend"}
+                        >
+                          {selectedCard.suspended ? <PlayCircle className="h-4 w-4" /> : <PauseCircle className="h-4 w-4" />}
+                        </button>
                         <Link
                           href={`/cards/${selectedCard.id}/edit`}
                           className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
@@ -474,7 +520,7 @@ export default function DeckDetailPage() {
                     >
                       View card →
                     </Link>
-                    <CardActions card={card} onDelete={handleDeleteCard} hideUntilHover />
+                    <CardActions card={card} onDelete={handleDeleteCard} onToggleSuspend={handleToggleSuspend} hideUntilHover />
                   </div>
                   <CardFrontBack card={card} />
                   <CardMeta card={card} tags={cardTagsMap[card.id] ?? []} />

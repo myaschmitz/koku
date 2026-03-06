@@ -25,6 +25,7 @@ export default function StudyAllPage() {
         .from("cards")
         .select("*")
         .eq("user_id", user.id)
+        .eq("suspended", false)
         .lte("due", now)
         .order("state", { ascending: true })
         .order("due", { ascending: true });

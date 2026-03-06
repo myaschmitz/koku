@@ -23,6 +23,7 @@ export interface Card {
   reps: number;
   lapses: number;
   state: number; // 0=New, 1=Learning, 2=Review, 3=Relearning
+  suspended: boolean;
   due: string;
   last_review: string | null;
   created_at: string;

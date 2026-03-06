@@ -43,6 +43,7 @@ export default function DecksPage() {
           .from("cards")
           .select("*", { count: "exact", head: true })
           .eq("deck_id", deck.id)
+          .eq("suspended", false)
           .lte("due", now);
 
         return {
