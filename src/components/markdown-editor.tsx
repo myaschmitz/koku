@@ -1,15 +1,19 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   Bold,
   Italic,
+  Underline,
+  Strikethrough,
   Code,
   Link,
   List,
   Heading2,
   ImagePlus,
   Loader2,
+  Undo2,
+  Redo2,
 } from "lucide-react";
 import { Markdown } from "@/components/markdown";
 
@@ -22,7 +26,7 @@ interface MarkdownEditorProps {
   required?: boolean;
 }
 
-function insertAround(
+function wrapSelection(
   textarea: HTMLTextAreaElement,
   before: string,
   after: string,
@@ -37,12 +41,227 @@ function insertAround(
     after +
     value.slice(selectionEnd);
   onChange(newValue);
-  // Restore cursor after React re-renders
   requestAnimationFrame(() => {
     textarea.focus();
     textarea.selectionStart = selectionStart + before.length;
     textarea.selectionEnd = selectionEnd + before.length;
   });
+}
+
+/**
+ * Find a balanced pair of symmetric markers (like ** or ~~) surrounding
+ * the cursor on the current line.  Returns [openIdx, closeIdx] where
+ * openIdx is the start of the opening marker and closeIdx is the start
+ * of the closing marker, or null if no enclosing pair is found.
+ */
+function findEnclosingMarkers(
+  value: string,
+  cursor: number,
+  marker: string,
+): [number, number] | null {
+  const lineStart = value.lastIndexOf("\n", cursor - 1) + 1;
+  const lineEndRaw = value.indexOf("\n", cursor);
+  const lineEnd = lineEndRaw === -1 ? value.length : lineEndRaw;
+  const line = value.slice(lineStart, lineEnd);
+  const cur = cursor - lineStart;
+
+  // Collect every occurrence of the marker on this line
+  const positions: number[] = [];
+  let searchFrom = 0;
+  while (searchFrom <= line.length - marker.length) {
+    const idx = line.indexOf(marker, searchFrom);
+    if (idx === -1) break;
+    positions.push(idx);
+    searchFrom = idx + marker.length;
+  }
+
+  // Pair them 1↔2, 3↔4 … and check whether the cursor sits inside a pair
+  for (let i = 0; i < positions.length - 1; i += 2) {
+    const openEnd = positions[i] + marker.length;
+    const closeStart = positions[i + 1];
+    if (cur >= openEnd && cur <= closeStart) {
+      return [lineStart + positions[i], lineStart + closeStart];
+    }
+  }
+  return null;
+}
+
+/**
+ * Find an enclosing pair of *different* open/close markers (like <u>…</u>)
+ * surrounding the cursor on the current line.
+ */
+function findEnclosingAsymmetric(
+  value: string,
+  cursor: number,
+  before: string,
+  after: string,
+): [number, number] | null {
+  const lineStart = value.lastIndexOf("\n", cursor - 1) + 1;
+  const lineEndRaw = value.indexOf("\n", cursor);
+  const lineEnd = lineEndRaw === -1 ? value.length : lineEndRaw;
+  const line = value.slice(lineStart, lineEnd);
+  const cur = cursor - lineStart;
+
+  // Search backwards from cursor for `before`, forwards for `after`
+  const openIdx = line.lastIndexOf(before, cur - 1);
+  if (openIdx === -1) return null;
+  const closeIdx = line.indexOf(after, cur);
+  if (closeIdx === -1) return null;
+  if (cur >= openIdx + before.length && cur <= closeIdx) {
+    return [lineStart + openIdx, lineStart + closeIdx];
+  }
+  return null;
+}
+
+/**
+ * Toggle symmetric or asymmetric inline markers (bold, italic, code, etc.).
+ * Handles three scenarios similar to Obsidian:
+ *   1. Text selected & already wrapped → unwrap
+ *   2. No selection, cursor inside markers → remove markers
+ *   3. Otherwise → wrap / insert markers
+ */
+function toggleAround(
+  textarea: HTMLTextAreaElement,
+  before: string,
+  after: string,
+  onChange: (v: string) => void,
+) {
+  const { selectionStart, selectionEnd, value } = textarea;
+
+  // --- 1. Check if markers sit immediately outside the selection / cursor ---
+  const prefixStart = selectionStart - before.length;
+  const suffixEnd = selectionEnd + after.length;
+  if (
+    prefixStart >= 0 &&
+    suffixEnd <= value.length &&
+    value.slice(prefixStart, selectionStart) === before &&
+    value.slice(selectionEnd, suffixEnd) === after
+  ) {
+    const inner = value.slice(selectionStart, selectionEnd);
+    const newValue =
+      value.slice(0, prefixStart) + inner + value.slice(suffixEnd);
+    onChange(newValue);
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.selectionStart = prefixStart;
+      textarea.selectionEnd = prefixStart + inner.length;
+    });
+    return;
+  }
+
+  // --- 2. Selected text itself contains markers at its edges ---
+  if (selectionStart !== selectionEnd) {
+    const selected = value.slice(selectionStart, selectionEnd);
+    if (
+      selected.length >= before.length + after.length &&
+      selected.startsWith(before) &&
+      selected.endsWith(after)
+    ) {
+      const inner = selected.slice(
+        before.length,
+        selected.length - after.length,
+      );
+      const newValue =
+        value.slice(0, selectionStart) + inner + value.slice(selectionEnd);
+      onChange(newValue);
+      requestAnimationFrame(() => {
+        textarea.focus();
+        textarea.selectionStart = selectionStart;
+        textarea.selectionEnd = selectionStart + inner.length;
+      });
+      return;
+    }
+  }
+
+  // --- 3. No selection – look for an enclosing marker pair on the same line ---
+  if (selectionStart === selectionEnd) {
+    const pair =
+      before === after
+        ? findEnclosingMarkers(value, selectionStart, before)
+        : findEnclosingAsymmetric(value, selectionStart, before, after);
+
+    if (pair) {
+      const [openIdx, closeIdx] = pair;
+      const inner = value.slice(openIdx + before.length, closeIdx);
+      const newValue =
+        value.slice(0, openIdx) +
+        inner +
+        value.slice(closeIdx + after.length);
+      onChange(newValue);
+      const newCursor = selectionStart - before.length;
+      requestAnimationFrame(() => {
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = newCursor;
+      });
+      return;
+    }
+  }
+
+  // --- 4. Not currently formatted → wrap ---
+  wrapSelection(textarea, before, after, onChange);
+}
+
+/**
+ * Toggle a markdown link.  When already inside `[text](url)`, removes
+ * the link syntax and keeps the text.  Otherwise wraps with link markers.
+ */
+function toggleLink(
+  textarea: HTMLTextAreaElement,
+  onChange: (v: string) => void,
+) {
+  const { selectionStart, selectionEnd, value } = textarea;
+
+  // Check if markers immediately surround the selection: [selection](…)
+  if (selectionStart > 0 && value[selectionStart - 1] === "[") {
+    const afterSel = value.slice(selectionEnd);
+    const m = afterSel.match(/^\]\([^)]*\)/);
+    if (m) {
+      const text = value.slice(selectionStart, selectionEnd);
+      const newValue =
+        value.slice(0, selectionStart - 1) +
+        text +
+        value.slice(selectionEnd + m[0].length);
+      onChange(newValue);
+      requestAnimationFrame(() => {
+        textarea.focus();
+        textarea.selectionStart = selectionStart - 1;
+        textarea.selectionEnd = selectionStart - 1 + text.length;
+      });
+      return;
+    }
+  }
+
+  // Cursor / selection inside an existing [text](url) on the same line
+  const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
+  const lineEndRaw = value.indexOf("\n", selectionStart);
+  const lineEnd = lineEndRaw === -1 ? value.length : lineEndRaw;
+  const line = value.slice(lineStart, lineEnd);
+  const linkRe = /\[([^\]]*)\]\([^)]*\)/g;
+  let match;
+  while ((match = linkRe.exec(line)) !== null) {
+    const absStart = lineStart + match.index;
+    const absEnd = absStart + match[0].length;
+    if (selectionStart >= absStart && selectionEnd <= absEnd) {
+      const linkText = match[1];
+      const newValue =
+        value.slice(0, absStart) + linkText + value.slice(absEnd);
+      const newCursor = Math.min(
+        selectionStart > absStart + linkText.length
+          ? absStart + linkText.length
+          : selectionStart,
+        absStart + linkText.length,
+      );
+      onChange(newValue);
+      requestAnimationFrame(() => {
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = newCursor;
+      });
+      return;
+    }
+  }
+
+  // Not in a link → wrap
+  wrapSelection(textarea, "[", "](url)", onChange);
 }
 
 function insertAtLineStart(
@@ -89,6 +308,123 @@ export function MarkdownEditor({
   const [uploading, setUploading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Undo / Redo history ──
+  const [historyState, setHistoryState] = useState({ undoLen: 0, redoLen: 0 });
+  const undoStackRef = useRef<{ val: string; cur: number }[]>([]);
+  const redoStackRef = useRef<{ val: string; cur: number }[]>([]);
+  const isRestoringRef = useRef(false);
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // Track the last value we pushed so we don't duplicate entries
+  const lastPushedRef = useRef(value);
+
+  const canUndo = historyState.undoLen > 0;
+  const canRedo = historyState.redoLen > 0;
+
+  /** Notify React about stack-length changes so toolbar buttons update. */
+  const syncHistory = useCallback(() => {
+    setHistoryState({
+      undoLen: undoStackRef.current.length,
+      redoLen: redoStackRef.current.length,
+    });
+  }, []);
+
+  /** Save a snapshot before a programmatic mutation (formatting, etc.). */
+  const saveBeforeAction = useCallback(() => {
+    clearTimeout(typingTimerRef.current);
+    const ta = textareaRef.current;
+    // Flush any unsaved typing first
+    if (value !== lastPushedRef.current) {
+      undoStackRef.current.push({
+        val: lastPushedRef.current,
+        cur: ta?.selectionStart ?? 0,
+      });
+      lastPushedRef.current = value;
+    }
+    // Push the current (pre-action) state
+    undoStackRef.current.push({
+      val: value,
+      cur: ta?.selectionStart ?? 0,
+    });
+    redoStackRef.current = [];
+    syncHistory();
+  }, [value, syncHistory]);
+
+  // After a formatting action fires onChange, mark the new value as "pushed"
+  // so the next typing debounce doesn't double-record it.
+  const justFormattedRef = useRef(false);
+  useEffect(() => {
+    if (justFormattedRef.current) {
+      justFormattedRef.current = false;
+      lastPushedRef.current = value;
+    }
+  }, [value]);
+
+  const undo = useCallback(() => {
+    if (undoStackRef.current.length === 0) return;
+    const ta = textareaRef.current;
+    redoStackRef.current.push({
+      val: value,
+      cur: ta?.selectionStart ?? 0,
+    });
+    const entry = undoStackRef.current.pop()!;
+    isRestoringRef.current = true;
+    lastPushedRef.current = entry.val;
+    onChange(entry.val);
+    syncHistory();
+    requestAnimationFrame(() => {
+      if (ta) {
+        ta.focus();
+        ta.selectionStart = ta.selectionEnd = entry.cur;
+      }
+    });
+  }, [value, onChange, syncHistory]);
+
+  const redo = useCallback(() => {
+    if (redoStackRef.current.length === 0) return;
+    const ta = textareaRef.current;
+    undoStackRef.current.push({
+      val: value,
+      cur: ta?.selectionStart ?? 0,
+    });
+    const entry = redoStackRef.current.pop()!;
+    isRestoringRef.current = true;
+    lastPushedRef.current = entry.val;
+    onChange(entry.val);
+    syncHistory();
+    requestAnimationFrame(() => {
+      if (ta) {
+        ta.focus();
+        ta.selectionStart = ta.selectionEnd = entry.cur;
+      }
+    });
+  }, [value, onChange, syncHistory]);
+
+  /** Wrap the parent onChange so typing gets debounce-tracked. */
+  const trackedOnChange = useCallback(
+    (newValue: string) => {
+      if (isRestoringRef.current) {
+        isRestoringRef.current = false;
+        onChange(newValue);
+        return;
+      }
+      clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = setTimeout(() => {
+        if (lastPushedRef.current !== newValue) {
+          const ta = textareaRef.current;
+          undoStackRef.current.push({
+            val: lastPushedRef.current,
+            cur: ta?.selectionStart ?? 0,
+          });
+          redoStackRef.current = [];
+          lastPushedRef.current = newValue;
+          syncHistory();
+        }
+      }, 500);
+      onChange(newValue);
+    },
+    [onChange, syncHistory],
+  );
 
   const handleImageFiles = useCallback(
     async (files: File[]) => {
@@ -156,21 +492,39 @@ export function MarkdownEditor({
     (action: string) => {
       const ta = textareaRef.current;
       if (!ta) return;
+      if (action === "undo") {
+        undo();
+        return;
+      }
+      if (action === "redo") {
+        redo();
+        return;
+      }
+      if (action !== "image") {
+        saveBeforeAction();
+        justFormattedRef.current = true;
+      }
       switch (action) {
         case "bold":
-          insertAround(ta, "**", "**", onChange);
+          toggleAround(ta, "**", "**", onChange);
           break;
         case "italic":
-          insertAround(ta, "_", "_", onChange);
+          toggleAround(ta, "_", "_", onChange);
           break;
         case "code":
-          insertAround(ta, "`", "`", onChange);
+          toggleAround(ta, "`", "`", onChange);
           break;
         case "codeblock":
-          insertAround(ta, "\n```\n", "\n```\n", onChange);
+          wrapSelection(ta, "\n```\n", "\n```\n", onChange);
+          break;
+        case "underline":
+          toggleAround(ta, "<u>", "</u>", onChange);
+          break;
+        case "strikethrough":
+          toggleAround(ta, "~~", "~~", onChange);
           break;
         case "link":
-          insertAround(ta, "[", "](url)", onChange);
+          toggleLink(ta, onChange);
           break;
         case "list":
           insertAtLineStart(ta, "- ", onChange);
@@ -183,7 +537,7 @@ export function MarkdownEditor({
           break;
       }
     },
-    [onChange],
+    [onChange, saveBeforeAction, undo, redo],
   );
 
   const handleFileInput = useCallback(
@@ -195,11 +549,53 @@ export function MarkdownEditor({
     [handleImageFiles],
   );
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+
+      const key = e.key.toLowerCase();
+
+      // Undo: Cmd/Ctrl+Z (without Shift)
+      if (key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+        return;
+      }
+      // Redo: Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y
+      if ((key === "z" && e.shiftKey) || key === "y") {
+        e.preventDefault();
+        redo();
+        return;
+      }
+
+      const shortcuts: Record<string, string> = {
+        b: "bold",
+        i: "italic",
+        u: "underline",
+        s: "strikethrough",
+        k: "link",
+        e: "code",
+      };
+
+      const action = shortcuts[key];
+      if (action) {
+        e.preventDefault();
+        handleToolbar(action);
+      }
+    },
+    [handleToolbar, undo, redo],
+  );
+
   const toolbarButtons = [
-    { action: "bold", icon: Bold, title: "Bold (Ctrl+B)" },
-    { action: "italic", icon: Italic, title: "Italic (Ctrl+I)" },
-    { action: "code", icon: Code, title: "Inline code" },
-    { action: "link", icon: Link, title: "Link" },
+    { action: "undo", icon: Undo2, title: "Undo (⌘Z)", disabled: !canUndo },
+    { action: "redo", icon: Redo2, title: "Redo (⌘⇧Z)", disabled: !canRedo },
+    { action: "bold", icon: Bold, title: "Bold (⌘B)" },
+    { action: "italic", icon: Italic, title: "Italic (⌘I)" },
+    { action: "underline", icon: Underline, title: "Underline (⌘U)" },
+    { action: "strikethrough", icon: Strikethrough, title: "Strikethrough (⌘S)" },
+    { action: "code", icon: Code, title: "Inline code (⌘E)" },
+    { action: "link", icon: Link, title: "Link (⌘K)" },
     { action: "list", icon: List, title: "List" },
     { action: "heading", icon: Heading2, title: "Heading" },
     ...(onImageUpload
@@ -220,18 +616,25 @@ export function MarkdownEditor({
         <div className="flex items-center gap-0.5">
           {mode === "write" &&
             toolbarButtons.map((btn) => (
-              <button
-                key={btn.action}
-                type="button"
-                title={btn.title}
-                onClick={() => handleToolbar(btn.action)}
-                disabled={btn.action === "image" && uploading}
-                className={`p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors disabled:opacity-50 ${
-                  btn.action === "image" && uploading ? "animate-spin" : ""
-                }`}
-              >
-                <btn.icon className="h-4 w-4" />
-              </button>
+              <span key={btn.action} className="flex items-center">
+                {btn.action === "bold" && (
+                  <span className="mx-1 h-4 w-px bg-slate-300 dark:bg-slate-600" />
+                )}
+                <button
+                  type="button"
+                  title={btn.title}
+                  onClick={() => handleToolbar(btn.action)}
+                  disabled={
+                    btn.disabled ??
+                    (btn.action === "image" && uploading)
+                  }
+                  className={`p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors disabled:opacity-30 disabled:cursor-default disabled:hover:bg-transparent dark:disabled:hover:bg-transparent ${
+                    btn.action === "image" && uploading ? "animate-spin" : ""
+                  }`}
+                >
+                  <btn.icon className="h-4 w-4" />
+                </button>
+              </span>
             ))}
         </div>
         <div className="flex rounded-md bg-slate-200 dark:bg-slate-700 p-0.5 text-xs">
@@ -266,7 +669,8 @@ export function MarkdownEditor({
           <textarea
             ref={textareaRef}
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => trackedOnChange(e.target.value)}
+            onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             onDrop={handleDrop}
             placeholder={placeholder}
