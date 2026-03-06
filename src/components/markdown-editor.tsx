@@ -551,6 +551,35 @@ export function MarkdownEditor({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      // Auto-complete triple backticks: when user types ` and the two
+      // preceding characters are already ``, insert a newline + closing ```
+      // and keep the cursor right after the opening ``` (for language tag).
+      if (e.key === "`" && !e.metaKey && !e.ctrlKey) {
+        const ta = e.currentTarget;
+        const { selectionStart, value: val } = ta;
+        if (
+          selectionStart >= 2 &&
+          val[selectionStart - 1] === "`" &&
+          val[selectionStart - 2] === "`"
+        ) {
+          e.preventDefault();
+          const before = val.slice(0, selectionStart);
+          const after = val.slice(selectionStart);
+          const insertion = "`\n```";
+          const newValue = before + insertion + after;
+          saveBeforeAction();
+          justFormattedRef.current = true;
+          onChange(newValue);
+          // Place cursor right after the opening ``` (before the newline)
+          const cursorPos = selectionStart + 1;
+          requestAnimationFrame(() => {
+            ta.focus();
+            ta.selectionStart = ta.selectionEnd = cursorPos;
+          });
+          return;
+        }
+      }
+
       const mod = e.metaKey || e.ctrlKey;
       if (!mod) return;
 
@@ -584,7 +613,7 @@ export function MarkdownEditor({
         handleToolbar(action);
       }
     },
-    [handleToolbar, undo, redo],
+    [handleToolbar, undo, redo, saveBeforeAction, onChange],
   );
 
   const toolbarButtons = [
