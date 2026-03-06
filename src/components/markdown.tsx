@@ -4,6 +4,8 @@ import fromHighlighter from "@shikijs/rehype/core";
 import { createHighlighterCoreSync } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 import type { PluggableList } from "unified";
+import type { Components } from "react-markdown";
+import { resolveImageUrl } from "@/lib/upload-image";
 
 import langPython from "shiki/dist/langs/python.mjs";
 import langJavascript from "shiki/dist/langs/javascript.mjs";
@@ -51,6 +53,13 @@ const shikiTransformer = fromHighlighter(highlighter as never, {
 const rehypeShikiPlugin = () => shikiTransformer;
 const rehypePlugins: PluggableList = [rehypeShikiPlugin as never];
 
+const components: Components = {
+  img: ({ src, alt, ...props }) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={typeof src === "string" ? resolveImageUrl(src) : undefined} alt={alt ?? "image"} {...props} />
+  ),
+};
+
 interface MarkdownProps {
   children: string;
 }
@@ -58,7 +67,7 @@ interface MarkdownProps {
 export function Markdown({ children }: MarkdownProps) {
   return (
     <div className="markdown-content">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={rehypePlugins}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={rehypePlugins} components={components}>
         {children}
       </ReactMarkdown>
     </div>
