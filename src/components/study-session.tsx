@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { scheduleCard, getSchedulingPreview, Rating } from "@/lib/srs";
 import { Markdown } from "@/components/markdown";
@@ -35,9 +35,34 @@ export function StudySession({ cards, settings }: StudySessionProps) {
     easy: 0,
   });
 
+  // Undo state: snapshot of previous card's DB fields before rating
+  const [undoSnapshot, setUndoSnapshot] = useState<{
+    index: number;
+    rating: Grade;
+    original: Pick<Card, "stability" | "difficulty" | "elapsed_days" | "scheduled_days" | "reps" | "lapses" | "state" | "due" | "last_review" | "updated_at">;
+  } | null>(null);
+
   const card = cards[currentIndex];
 
-  const handleRate = async (rating: Grade) => {
+  const handleRate = useCallback(async (rating: Grade) => {
+    // Save snapshot for undo before modifying
+    setUndoSnapshot({
+      index: currentIndex,
+      rating,
+      original: {
+        stability: card.stability,
+        difficulty: card.difficulty,
+        elapsed_days: card.elapsed_days,
+        scheduled_days: card.scheduled_days,
+        reps: card.reps,
+        lapses: card.lapses,
+        state: card.state,
+        due: card.due,
+        last_review: card.last_review,
+        updated_at: card.updated_at,
+      },
+    });
+
     const result = scheduleCard(card, rating, settings);
     const updatedCard = result.card;
 
@@ -88,7 +113,88 @@ export function StudySession({ cards, settings }: StudySessionProps) {
     } else {
       setDone(true);
     }
-  };
+  }, [card, currentIndex, cards.length, supabase, settings]);
+
+  const handleUndo = useCallback(async () => {
+    if (!undoSnapshot) return;
+
+    // Restore the card's original fields in DB
+    await supabase
+      .from("cards")
+      .update({
+        stability: undoSnapshot.original.stability,
+        difficulty: undoSnapshot.original.difficulty,
+        elapsed_days: undoSnapshot.original.elapsed_days,
+        scheduled_days: undoSnapshot.original.scheduled_days,
+        reps: undoSnapshot.original.reps,
+        lapses: undoSnapshot.original.lapses,
+        state: undoSnapshot.original.state,
+        due: undoSnapshot.original.due,
+        last_review: undoSnapshot.original.last_review,
+        updated_at: undoSnapshot.original.updated_at,
+      })
+      .eq("id", cards[undoSnapshot.index].id);
+
+    // Delete the most recent review log for this card
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: logs } = await supabase
+        .from("review_logs")
+        .select("id")
+        .eq("card_id", cards[undoSnapshot.index].id)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (logs && logs.length > 0) {
+        await supabase.from("review_logs").delete().eq("id", logs[0].id);
+      }
+    }
+
+    // Revert stats
+    const r = undoSnapshot.rating;
+    setStats((prev) => {
+      if (r === Rating.Again) return { ...prev, again: prev.again - 1 };
+      if (r === Rating.Hard) return { ...prev, hard: prev.hard - 1 };
+      if (r === Rating.Good) return { ...prev, good: prev.good - 1 };
+      return { ...prev, easy: prev.easy - 1 };
+    });
+
+    // Go back to that card
+    setCurrentIndex(undoSnapshot.index);
+    setShowAnswer(false);
+    setDone(false);
+    setUndoSnapshot(null);
+  }, [undoSnapshot, supabase, cards]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+      if (done) return;
+
+      if (!showAnswer) {
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          setShowAnswer(true);
+        }
+      } else {
+        if (e.key === "1") handleRate(Rating.Again);
+        else if (e.key === "2") handleRate(Rating.Hard);
+        else if (e.key === "3") handleRate(Rating.Good);
+        else if (e.key === "4") handleRate(Rating.Easy);
+      }
+
+      if (e.key === "u" || e.key === "U") {
+        handleUndo();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showAnswer, done, handleRate, handleUndo]);
 
   if (done) {
     return (
@@ -137,10 +243,11 @@ export function StudySession({ cards, settings }: StudySessionProps) {
 
   const preview = getSchedulingPreview(card, settings);
 
-  const ratingButtons: Array<{ rating: Grade; label: string; interval: string; color: string }> = [
+  const ratingButtons: Array<{ rating: Grade; label: string; shortcut: string; interval: string; color: string }> = [
     {
       rating: Rating.Again,
       label: "Again",
+      shortcut: "1",
       interval: preview[Rating.Again],
       color:
         "bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500",
@@ -148,6 +255,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
     {
       rating: Rating.Hard,
       label: "Hard",
+      shortcut: "2",
       interval: preview[Rating.Hard],
       color:
         "bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500",
@@ -155,6 +263,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
     {
       rating: Rating.Good,
       label: "Good",
+      shortcut: "3",
       interval: preview[Rating.Good],
       color:
         "bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-500",
@@ -162,6 +271,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
     {
       rating: Rating.Easy,
       label: "Easy",
+      shortcut: "4",
       interval: preview[Rating.Easy],
       color:
         "bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500",
@@ -233,6 +343,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
           className="cursor-pointer w-full rounded-lg bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 py-3 text-sm font-medium hover:bg-slate-700 dark:hover:bg-slate-300 transition-colors"
         >
           Show Answer
+          <span className="ml-2 text-xs opacity-60">Space</span>
         </button>
       ) : (
         <div className="grid grid-cols-4 gap-3">
@@ -242,11 +353,26 @@ export function StudySession({ cards, settings }: StudySessionProps) {
               onClick={() => handleRate(btn.rating)}
               className={`cursor-pointer rounded-lg py-3 text-white text-sm font-medium transition-colors ${btn.color}`}
             >
-              <div>{btn.label}</div>
+              <div>
+                {btn.label}
+                <span className="ml-1.5 inline-flex items-center justify-center rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-mono leading-none">
+                  {btn.shortcut}
+                </span>
+              </div>
               <div className="text-xs opacity-80 mt-0.5">{btn.interval}</div>
             </button>
           ))}
         </div>
+      )}
+
+      {/* Undo */}
+      {undoSnapshot && (
+        <button
+          onClick={handleUndo}
+          className="cursor-pointer w-full text-center text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+        >
+          Undo last rating <span className="opacity-60 font-mono text-xs">U</span>
+        </button>
       )}
     </div>
   );
