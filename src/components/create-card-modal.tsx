@@ -58,10 +58,24 @@ export function CreateCardModal({
     if (open) {
       document.addEventListener("keydown", handleEscape);
       document.body.style.overflow = "hidden";
+      // Prevent background scroll on mobile (iOS Safari ignores overflow:hidden on body)
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      return () => {
+        document.removeEventListener("keydown", handleEscape);
+        document.body.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        window.scrollTo(0, scrollY);
+      };
     }
     return () => {
       document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "";
     };
   }, [open, handleEscape]);
 
