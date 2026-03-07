@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Koku",
-  description: "Spaced repetition flashcards for LeetCode interview prep",
+  description: "Spaced repetition flashcards",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

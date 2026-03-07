@@ -44,7 +44,7 @@ export default function LoginPage() {
             Koku
           </h1>
           <p className="mt-2 text-slate-600 dark:text-slate-400">
-            Spaced repetition for LeetCode prep
+            Spaced repetition
           </p>
         </div>
 
