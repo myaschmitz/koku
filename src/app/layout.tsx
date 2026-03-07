@@ -13,9 +13,42 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = "https://www.koku.cards";
+
 export const metadata: Metadata = {
-  title: "Koku",
-  description: "Spaced repetition flashcards",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Koku - Spaced Repetition Flashcards",
+    template: "%s | Koku",
+  },
+  description:
+    "Master any subject with Koku — a spaced repetition flashcard app that helps you learn and retain knowledge efficiently.",
+  keywords: [
+    "spaced repetition",
+    "flashcards",
+    "learning",
+    "study",
+    "memorization",
+    "anki",
+    "SRS",
+  ],
+  openGraph: {
+    type: "website",
+    siteName: "Koku",
+    title: "Koku - Spaced Repetition Flashcards",
+    description:
+      "Master any subject with Koku — a spaced repetition flashcard app that helps you learn and retain knowledge efficiently.",
+    url: siteUrl,
+  },
+  twitter: {
+    card: "summary",
+    title: "Koku - Spaced Repetition Flashcards",
+    description:
+      "Master any subject with Koku — a spaced repetition flashcard app that helps you learn and retain knowledge efficiently.",
+  },
+  alternates: {
+    canonical: siteUrl,
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
