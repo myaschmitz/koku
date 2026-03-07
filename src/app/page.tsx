@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { BookOpen, Code, Moon } from "lucide-react";
 
@@ -18,7 +19,14 @@ export default async function Home() {
       {/* Nav */}
       <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-          <span className="text-lg font-bold text-slate-900 dark:text-slate-100">
+          <span className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-slate-100">
+            <Image
+              src="/koku-circle-logo.svg"
+              alt=""
+              width={28}
+              height={28}
+              className="dark:invert"
+            />
             Koku
           </span>
           <Link

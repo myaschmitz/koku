@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -20,8 +21,15 @@ export function NavHeader() {
       <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link
           href="/decks"
-          className="text-lg font-bold text-slate-900 dark:text-slate-100"
+          className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-slate-100"
         >
+          <Image
+            src="/koku-circle-logo.svg"
+            alt=""
+            width={28}
+            height={28}
+            className="dark:invert"
+          />
           Koku
         </Link>
         <div className="flex items-center gap-3">

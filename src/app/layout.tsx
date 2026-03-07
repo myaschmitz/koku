@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     title: "Koku",
   },
   icons: {
-    apple: "/icon-192.png",
+    apple: "/koku-circle-logo.png",
   },
 };
 
