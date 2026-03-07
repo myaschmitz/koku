@@ -24,6 +24,7 @@ interface MarkdownEditorProps {
   placeholder?: string;
   rows?: number;
   required?: boolean;
+  autoFocus?: boolean;
 }
 
 function wrapSelection(
@@ -303,6 +304,7 @@ export function MarkdownEditor({
   placeholder,
   rows = 6,
   required,
+  autoFocus,
 }: MarkdownEditorProps) {
   const [mode, setMode] = useState<"write" | "preview">("write");
   const [uploading, setUploading] = useState(false);
@@ -705,6 +707,7 @@ export function MarkdownEditor({
             placeholder={placeholder}
             rows={rows}
             required={required}
+            autoFocus={autoFocus}
             disabled={uploading}
             className="w-full bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none resize-y font-mono disabled:opacity-60"
           />

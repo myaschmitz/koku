@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, PauseCircle, PlayCircle } from "lucide-react";
 import { Markdown } from "@/components/markdown";
+import { splitCardContent } from "@/lib/card-utils";
 import type { Card, Tag } from "@/lib/types";
 
 const STATE_LABELS = ["New", "Learning", "Review", "Relearning"];
@@ -114,28 +115,35 @@ export default function CardViewPage() {
       </div>
 
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 space-y-4">
-        <div>
-          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-            Front
-          </span>
-          <h2 className="text-xl font-semibold mt-1">{card.front_title}</h2>
-          {card.front_detail && (
-            <div className="mt-2 text-slate-600 dark:text-slate-300">
-              <Markdown>{card.front_detail}</Markdown>
-            </div>
-          )}
-        </div>
+        {(() => {
+          const { front, back } = splitCardContent(card.content);
+          return (
+            <>
+              <div>
+                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  Front
+                </span>
+                <div className="mt-2 text-slate-600 dark:text-slate-300">
+                  <Markdown>{front}</Markdown>
+                </div>
+              </div>
 
-        <hr className="border-slate-200 dark:border-slate-700" />
-
-        <div>
-          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-            Back
-          </span>
-          <div className="mt-2 text-slate-600 dark:text-slate-300">
-            <Markdown>{card.back_content}</Markdown>
-          </div>
-        </div>
+              {back && (
+                <>
+                  <hr className="border-slate-200 dark:border-slate-700" />
+                  <div>
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                      Back
+                    </span>
+                    <div className="mt-2 text-slate-600 dark:text-slate-300">
+                      <Markdown>{back}</Markdown>
+                    </div>
+                  </div>
+                </>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {tags.length > 0 && (

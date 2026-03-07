@@ -11,11 +11,7 @@ export interface Card {
   id: string;
   deck_id: string;
   user_id: string;
-  front_title: string;
-  front_detail: string | null;
-  front_images: string[];
-  back_content: string;
-  back_images: string[];
+  content: string;
   stability: number;
   difficulty: number;
   elapsed_days: number;

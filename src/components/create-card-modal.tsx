@@ -48,12 +48,14 @@ export function CreateCardModal({
     const escaped = normalized.replace(/%/g, "\\%").replace(/_/g, "\\_");
     const { data } = await supabase
       .from("cards")
-      .select("id, front_title")
+      .select("id, content")
       .eq("deck_id", deckId)
-      .ilike("front_title", `%${escaped}%`)
+      .ilike("content", `%${escaped}%`)
       .limit(1)
       .single();
-    return data ?? null;
+    if (!data) return null;
+    const { getCardTitle } = await import("@/lib/card-utils");
+    return { id: data.id, title: getCardTitle(data.content) };
   };
 
   const handleSubmit = async (data: CardFormData) => {
@@ -62,9 +64,7 @@ export function CreateCardModal({
       .insert({
         deck_id: deckId,
         user_id: userId,
-        front_title: data.front_title,
-        front_detail: data.front_detail || null,
-        back_content: data.back_content,
+        content: data.content,
       })
       .select("id")
       .single();

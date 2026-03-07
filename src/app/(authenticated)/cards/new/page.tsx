@@ -43,18 +43,18 @@ function NewCardContent() {
     const escaped = normalized.replace(/%/g, "\\%").replace(/_/g, "\\_");
     const { data } = await supabase
       .from("cards")
-      .select("id, front_title")
+      .select("id, content")
       .eq("deck_id", deckId)
-      .ilike("front_title", `%${escaped}%`)
+      .ilike("content", `%${escaped}%`)
       .limit(1)
       .single();
-    return data ?? null;
+    if (!data) return null;
+    const { getCardTitle } = await import("@/lib/card-utils");
+    return { id: data.id, title: getCardTitle(data.content) };
   };
 
   const handleSubmit = async (data: {
-    front_title: string;
-    front_detail: string;
-    back_content: string;
+    content: string;
     tags: { id: string; name: string }[];
   }) => {
     if (!userId || !deckId) return;
@@ -64,9 +64,7 @@ function NewCardContent() {
       .insert({
         deck_id: deckId,
         user_id: userId,
-        front_title: data.front_title,
-        front_detail: data.front_detail || null,
-        back_content: data.back_content,
+        content: data.content,
       })
       .select("id")
       .single();

@@ -18,6 +18,7 @@ import {
 import type { Card, Deck, Tag } from "@/lib/types";
 import { CreateCardModal } from "@/components/create-card-modal";
 import { Markdown } from "@/components/markdown";
+import { splitCardContent, getCardTitle } from "@/lib/card-utils";
 
 const STATE_LABELS = ["New", "Learning", "Review", "Relearning"];
 const STATE_COLORS = [
@@ -76,30 +77,25 @@ function CardActions({
 }
 
 function CardFrontBack({ card, compact }: { card: Card; compact?: boolean }) {
+  const { front, back } = splitCardContent(card.content);
   return (
     <div className="space-y-3">
-      <div>
-        <h3 className={compact ? "font-medium" : "text-lg font-semibold"}>
-          {card.front_title}
-        </h3>
-        {card.front_detail && (
+      <div
+        className={`text-slate-600 dark:text-slate-300 ${compact ? "line-clamp-3" : ""}`}
+      >
+        <Markdown>{front}</Markdown>
+      </div>
+
+      {back && (
+        <>
+          <div className="border-t border-dashed border-slate-300 dark:border-slate-600" />
           <div
-            className={`mt-1 text-slate-600 dark:text-slate-300 ${compact ? "line-clamp-2" : ""}`}
+            className={`text-slate-600 dark:text-slate-300 ${compact ? "line-clamp-3" : ""}`}
           >
-            <Markdown>{card.front_detail}</Markdown>
+            <Markdown>{back}</Markdown>
           </div>
-        )}
-      </div>
-
-      <div className="border-t border-dashed border-slate-300 dark:border-slate-600" />
-
-      <div>
-        <div
-          className={`text-slate-600 dark:text-slate-300 ${compact ? "line-clamp-3" : ""}`}
-        >
-          <Markdown>{card.back_content}</Markdown>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }
@@ -389,7 +385,7 @@ export default function DeckDetailPage() {
                   key={card.id}
                   role="link"
                   tabIndex={0}
-                  aria-label={`View card: ${card.front_title}`}
+                  aria-label={`View card: ${getCardTitle(card.content)}`}
                   onClick={() => router.push(`/cards/${card.id}`)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") router.push(`/cards/${card.id}`);
@@ -431,13 +427,8 @@ export default function DeckDetailPage() {
                     }`}
                   >
                     <p className="font-medium text-slate-900 dark:text-slate-100 truncate">
-                      {card.front_title}
+                      {getCardTitle(card.content)}
                     </p>
-                    {card.front_detail && (
-                      <p className="text-sm text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                        {card.front_detail}
-                      </p>
-                    )}
                     <div className="flex items-center gap-2 mt-2">
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATE_COLORS[card.state]}`}
@@ -493,32 +484,7 @@ export default function DeckDetailPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <div>
-                        <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                          Front
-                        </span>
-                        <h2 className="text-xl font-semibold mt-1">
-                          {selectedCard.front_title}
-                        </h2>
-                        {selectedCard.front_detail && (
-                          <div className="mt-2 text-slate-600 dark:text-slate-300">
-                            <Markdown>{selectedCard.front_detail}</Markdown>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="border-t border-dashed border-slate-300 dark:border-slate-600" />
-
-                      <div>
-                        <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                          Back
-                        </span>
-                        <div className="mt-2 text-slate-600 dark:text-slate-300">
-                          <Markdown>{selectedCard.back_content}</Markdown>
-                        </div>
-                      </div>
-                    </div>
+                    <CardFrontBack card={selectedCard} />
 
                     <CardMeta
                       card={selectedCard}

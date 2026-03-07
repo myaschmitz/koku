@@ -48,32 +48,31 @@ export default function EditCardPage() {
   }, [cardId]);
 
   const checkDuplicate = async (title: string) => {
+    if (!card) return null;
     const normalized = title.replace(/^\d+[\.\-\s]+\s*/, "").trim();
     if (!normalized) return null;
     const escaped = normalized.replace(/%/g, "\\%").replace(/_/g, "\\_");
     const { data } = await supabase
       .from("cards")
-      .select("id, front_title")
+      .select("id, content")
       .eq("deck_id", card.deck_id)
       .neq("id", cardId)
-      .ilike("front_title", `%${escaped}%`)
+      .ilike("content", `%${escaped}%`)
       .limit(1)
       .single();
-    return data ?? null;
+    if (!data) return null;
+    const { getCardTitle } = await import("@/lib/card-utils");
+    return { id: data.id, title: getCardTitle(data.content) };
   };
 
   const handleSubmit = async (data: {
-    front_title: string;
-    front_detail: string;
-    back_content: string;
+    content: string;
     tags: Tag[];
   }) => {
     const { error } = await supabase
       .from("cards")
       .update({
-        front_title: data.front_title,
-        front_detail: data.front_detail || null,
-        back_content: data.back_content,
+        content: data.content,
         updated_at: new Date().toISOString(),
       })
       .eq("id", cardId);
@@ -119,9 +118,7 @@ export default function EditCardPage() {
       </div>
       <CardForm
         initial={{
-          front_title: card.front_title,
-          front_detail: card.front_detail ?? "",
-          back_content: card.back_content,
+          content: card.content,
           tags: cardTags,
         }}
         onSubmit={handleSubmit}

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { scheduleCard, getSchedulingPreview, Rating } from "@/lib/srs";
 import { Markdown } from "@/components/markdown";
+import { splitCardContent } from "@/lib/card-utils";
 
 import Link from "next/link";
 import { PauseCircle } from "lucide-react";
@@ -220,7 +221,10 @@ export function StudySession({ cards, settings }: StudySessionProps) {
 
       if (done) return;
 
-      if (!showAnswer) {
+      const isFrontOnly = splitCardContent(card.content).back === null;
+      const revealed = isFrontOnly || showAnswer;
+
+      if (!revealed) {
         if (e.key === " " || e.key === "Enter") {
           e.preventDefault();
           setShowAnswer(true);
@@ -243,7 +247,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showAnswer, done, handleRate, handleUndo, handleSuspend]);
+  }, [showAnswer, done, card, handleRate, handleUndo, handleSuspend]);
 
   if (done) {
     return (
@@ -385,64 +389,73 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       </div>
 
       {/* Card */}
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 min-h-[300px] flex flex-col">
-        {/* Front */}
-        <div className="flex-1">
-          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-            Front
-          </span>
-          <h2 className="text-xl font-semibold mt-2">{card.front_title}</h2>
-          {card.front_detail && (
-            <div className="mt-3 text-slate-600 dark:text-slate-300">
-              <Markdown>{card.front_detail}</Markdown>
-            </div>
-          )}
-        </div>
+      {(() => {
+        const { front, back } = splitCardContent(card.content);
+        const isFrontOnly = back === null;
+        const revealed = isFrontOnly || showAnswer;
 
-        {/* Back (revealed) */}
-        {showAnswer && (
+        return (
           <>
-            <hr className="border-slate-200 dark:border-slate-700 my-4" />
-            <div>
-              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                Back
-              </span>
-              <div className="mt-2 text-slate-600 dark:text-slate-300">
-                <Markdown>{card.back_content}</Markdown>
+            <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 min-h-[300px] flex flex-col">
+              {/* Front */}
+              <div className="flex-1">
+                {!isFrontOnly && (
+                  <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                    Front
+                  </span>
+                )}
+                <div className={`${isFrontOnly ? "" : "mt-2"} text-slate-600 dark:text-slate-300`}>
+                  <Markdown>{front}</Markdown>
+                </div>
               </div>
-            </div>
-          </>
-        )}
-      </div>
 
-      {/* Actions */}
-      {!showAnswer ? (
-        <button
-          onClick={() => setShowAnswer(true)}
-          className="w-full rounded-lg bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 py-3 text-sm font-medium hover:bg-slate-700 dark:hover:bg-slate-300 transition-colors"
-        >
-          Show Answer
-          <span className="ml-2 text-xs opacity-60">Space</span>
-        </button>
-      ) : (
-        <div className="grid grid-cols-4 gap-3">
-          {ratingButtons.map((btn) => (
-            <button
-              key={btn.label}
-              onClick={() => handleRate(btn.rating)}
-              className={`rounded-lg py-3 text-white text-sm font-medium transition-colors ${btn.color}`}
-            >
-              <div>
-                {btn.label}
-                <span className="ml-1.5 inline-flex items-center justify-center rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-mono leading-none">
-                  {btn.shortcut}
-                </span>
+              {/* Back (revealed) */}
+              {revealed && back && (
+                <>
+                  <hr className="border-slate-200 dark:border-slate-700 my-4" />
+                  <div>
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                      Back
+                    </span>
+                    <div className="mt-2 text-slate-600 dark:text-slate-300">
+                      <Markdown>{back}</Markdown>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Actions */}
+            {!revealed ? (
+              <button
+                onClick={() => setShowAnswer(true)}
+                className="w-full rounded-lg bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 py-3 text-sm font-medium hover:bg-slate-700 dark:hover:bg-slate-300 transition-colors"
+              >
+                Show Answer
+                <span className="ml-2 text-xs opacity-60">Space</span>
+              </button>
+            ) : (
+              <div className="grid grid-cols-4 gap-3">
+                {ratingButtons.map((btn) => (
+                  <button
+                    key={btn.label}
+                    onClick={() => handleRate(btn.rating)}
+                    className={`rounded-lg py-3 text-white text-sm font-medium transition-colors ${btn.color}`}
+                  >
+                    <div>
+                      {btn.label}
+                      <span className="ml-1.5 inline-flex items-center justify-center rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-mono leading-none">
+                        {btn.shortcut}
+                      </span>
+                    </div>
+                    <div className="text-xs opacity-80 mt-0.5">{btn.interval}</div>
+                  </button>
+                ))}
               </div>
-              <div className="text-xs opacity-80 mt-0.5">{btn.interval}</div>
-            </button>
-          ))}
-        </div>
-      )}
+            )}
+          </>
+        );
+      })()}
 
       {/* Undo */}
       {undoSnapshot && (
