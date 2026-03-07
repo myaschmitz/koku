@@ -14,13 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AnkiCode",
+  title: "Koku",
   description: "Spaced repetition flashcards for LeetCode interview prep",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "AnkiCode",
+    title: "Koku",
   },
   icons: {
     apple: "/icon-192.png",

@@ -41,7 +41,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-            AnkiCode
+            Koku
           </h1>
           <p className="mt-2 text-slate-600 dark:text-slate-400">
             Spaced repetition for LeetCode prep

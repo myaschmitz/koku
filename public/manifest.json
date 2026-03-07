@@ -1,6 +1,6 @@
 {
-  "name": "AnkiCode",
-  "short_name": "AnkiCode",
+  "name": "Koku",
+  "short_name": "Koku",
   "start_url": "/decks",
   "display": "standalone",
   "background_color": "#0f172a",

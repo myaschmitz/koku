@@ -22,7 +22,7 @@ export function NavHeader() {
           href="/decks"
           className="text-lg font-bold text-slate-900 dark:text-slate-100"
         >
-          AnkiCode
+          Koku
         </Link>
         <div className="flex items-center gap-3">
           <ThemeToggle />
