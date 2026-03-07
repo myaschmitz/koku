@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { TagInput } from "@/components/tag-input";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { createClient } from "@/lib/supabase/client";
@@ -20,6 +20,9 @@ interface CardFormProps {
   submitLabel: string;
   userId: string;
   cardId?: string;
+  checkDuplicate?: (
+    title: string,
+  ) => Promise<{ id: string; front_title: string } | null>;
 }
 
 export function CardForm({
@@ -28,6 +31,7 @@ export function CardForm({
   submitLabel,
   userId,
   cardId,
+  checkDuplicate,
 }: CardFormProps) {
   const [frontTitle, setFrontTitle] = useState(initial?.front_title ?? "");
   const [frontDetail, setFrontDetail] = useState(initial?.front_detail ?? "");
@@ -35,6 +39,25 @@ export function CardForm({
   const [tags, setTags] = useState<Tag[]>(initial?.tags ?? []);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"front" | "back">("front");
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  useEffect(() => {
+    if (!checkDuplicate) return;
+    const trimmed = frontTitle.trim();
+    if (!trimmed) {
+      setDuplicateWarning(null);
+      return;
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      const match = await checkDuplicate(trimmed);
+      setDuplicateWarning(match ? match.front_title : null);
+    }, 500);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [frontTitle, checkDuplicate]);
 
   const [tempId] = useState(() => crypto.randomUUID());
   const storagePath = `${userId}/${cardId ?? tempId}`;
@@ -136,6 +159,13 @@ export function CardForm({
             />
           </div>
         </div>
+      )}
+
+      {duplicateWarning && (
+        <p className="text-xs text-amber-600 dark:text-amber-400">
+          A card titled &ldquo;{duplicateWarning}&rdquo; already exists in this
+          deck.
+        </p>
       )}
 
       {/* Tags */}

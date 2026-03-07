@@ -36,6 +36,21 @@ function NewCardContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const checkDuplicate = async (title: string) => {
+    if (!deckId) return null;
+    const normalized = title.replace(/^\d+[\.\-\s]+\s*/, "").trim();
+    if (!normalized) return null;
+    const escaped = normalized.replace(/%/g, "\\%").replace(/_/g, "\\_");
+    const { data } = await supabase
+      .from("cards")
+      .select("id, front_title")
+      .eq("deck_id", deckId)
+      .ilike("front_title", `%${escaped}%`)
+      .limit(1)
+      .single();
+    return data ?? null;
+  };
+
   const handleSubmit = async (data: {
     front_title: string;
     front_detail: string;
@@ -102,7 +117,7 @@ function NewCardContent() {
         </Link>
         <h1 className="text-2xl font-bold mt-1">New Card</h1>
       </div>
-      <CardForm onSubmit={handleSubmit} submitLabel="Create Card" userId={userId} />
+      <CardForm onSubmit={handleSubmit} submitLabel="Create Card" userId={userId} checkDuplicate={checkDuplicate} />
     </div>
   );
 }

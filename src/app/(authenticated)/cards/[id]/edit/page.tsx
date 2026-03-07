@@ -47,6 +47,21 @@ export default function EditCardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardId]);
 
+  const checkDuplicate = async (title: string) => {
+    const normalized = title.replace(/^\d+[\.\-\s]+\s*/, "").trim();
+    if (!normalized) return null;
+    const escaped = normalized.replace(/%/g, "\\%").replace(/_/g, "\\_");
+    const { data } = await supabase
+      .from("cards")
+      .select("id, front_title")
+      .eq("deck_id", card.deck_id)
+      .neq("id", cardId)
+      .ilike("front_title", `%${escaped}%`)
+      .limit(1)
+      .single();
+    return data ?? null;
+  };
+
   const handleSubmit = async (data: {
     front_title: string;
     front_detail: string;
@@ -113,6 +128,7 @@ export default function EditCardPage() {
         submitLabel="Save Changes"
         userId={card.user_id}
         cardId={card.id}
+        checkDuplicate={checkDuplicate}
       />
     </div>
   );
