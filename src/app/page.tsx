@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { BookOpen, Code, Moon } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -29,12 +30,15 @@ export default async function Home() {
             />
             Koku
           </span>
-          <Link
-            href="/login"
-            className="rounded-lg bg-blue-500 dark:bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
-          >
-            Log in
-          </Link>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link
+              href="/login"
+              className="rounded-lg bg-blue-500 dark:bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
+            >
+              Log in
+            </Link>
+          </div>
         </div>
       </header>
 
