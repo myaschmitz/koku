@@ -44,10 +44,7 @@ export async function GET(request: NextRequest) {
       return redirectResponse;
     }
 
-    // Surface the error so we can debug
-    const errorRedirect = new URL(`${origin}/login`);
-    errorRedirect.searchParams.set("error", error.message);
-    return NextResponse.redirect(errorRedirect.toString());
+    return NextResponse.redirect(`${origin}/login`);
   }
 
   return NextResponse.redirect(`${origin}/login`);
