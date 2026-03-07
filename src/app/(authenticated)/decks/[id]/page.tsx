@@ -158,6 +158,26 @@ export default function DeckDetailPage() {
     columnDetailRef.current?.scrollTo(0, 0);
   }, [selectedCardId]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === "n" &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        !showCreateModal &&
+        !(e.target instanceof HTMLInputElement) &&
+        !(e.target instanceof HTMLTextAreaElement) &&
+        !(e.target as HTMLElement)?.isContentEditable
+      ) {
+        e.preventDefault();
+        setShowCreateModal(true);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showCreateModal]);
+
   const refreshCards = useCallback(async () => {
     const { data: cardsData } = await supabase
       .from("cards")
@@ -390,6 +410,19 @@ export default function DeckDetailPage() {
           {/* Grid View */}
           {viewMode === "grid" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(true)}
+                className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 p-4 min-h-30 text-slate-400 dark:text-slate-500 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+              >
+                <Plus className="h-8 w-8 mb-2" />
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">New Card</span>
+                  <kbd className="rounded bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 text-xs font-mono text-slate-400 dark:text-slate-500">
+                    N
+                  </kbd>
+                </div>
+              </button>
               {cards.map((card) => (
                 <div
                   key={card.id}
@@ -425,6 +458,17 @@ export default function DeckDetailPage() {
             <div className="flex gap-4 h-[calc(100vh-200px)]">
               {/* Left panel - card list */}
               <div className="w-1/3 min-w-0 overflow-y-auto space-y-2 pr-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(true)}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 p-3 text-slate-400 dark:text-slate-500 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="text-sm font-medium">New Card</span>
+                  <kbd className="rounded bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 text-xs font-mono text-slate-400 dark:text-slate-500">
+                    N
+                  </kbd>
+                </button>
                 {cards.map((card) => (
                   <button
                     key={card.id}
@@ -451,7 +495,10 @@ export default function DeckDetailPage() {
               </div>
 
               {/* Right panel - selected card detail */}
-              <div ref={columnDetailRef} className="w-2/3 min-w-0 overflow-y-auto">
+              <div
+                ref={columnDetailRef}
+                className="w-2/3 min-w-0 overflow-y-auto"
+              >
                 {selectedCard ? (
                   <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
                     <div className="flex items-start justify-between mb-4">
@@ -513,6 +560,17 @@ export default function DeckDetailPage() {
           {/* List View */}
           {viewMode === "list" && (
             <div className="space-y-4">
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(true)}
+                className="w-full flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 p-5 text-slate-400 dark:text-slate-500 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+              >
+                <Plus className="h-6 w-6" />
+                <span className="text-sm font-medium">New Card</span>
+                <kbd className="rounded bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 text-xs font-mono text-slate-400 dark:text-slate-500">
+                  N
+                </kbd>
+              </button>
               {cards.map((card) => (
                 <div
                   key={card.id}
