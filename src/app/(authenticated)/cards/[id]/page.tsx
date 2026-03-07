@@ -116,7 +116,7 @@ export default function CardViewPage() {
 
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 space-y-4">
         {(() => {
-          const { front, back } = splitCardContent(card.content);
+          const { front, backs } = splitCardContent(card.content);
           return (
             <>
               <div>
@@ -128,19 +128,19 @@ export default function CardViewPage() {
                 </div>
               </div>
 
-              {back && (
-                <>
+              {backs.map((section, i) => (
+                <div key={i}>
                   <hr className="border-slate-200 dark:border-slate-700" />
                   <div>
                     <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                      Back
+                      {backs.length === 1 ? "Back" : `Section ${i + 1}`}
                     </span>
                     <div className="mt-2 text-slate-600 dark:text-slate-300">
-                      <Markdown>{back}</Markdown>
+                      <Markdown>{section}</Markdown>
                     </div>
                   </div>
-                </>
-              )}
+                </div>
+              ))}
             </>
           );
         })()}

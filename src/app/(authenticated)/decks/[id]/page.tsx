@@ -14,6 +14,7 @@ import {
   List,
   PauseCircle,
   PlayCircle,
+  Plus,
 } from "lucide-react";
 import type { Card, Deck, Tag } from "@/lib/types";
 import { CreateCardModal } from "@/components/create-card-modal";
@@ -77,7 +78,7 @@ function CardActions({
 }
 
 function CardFrontBack({ card, compact }: { card: Card; compact?: boolean }) {
-  const { front, back } = splitCardContent(card.content);
+  const { front, backs } = splitCardContent(card.content);
   return (
     <div className="space-y-3">
       <div
@@ -86,16 +87,25 @@ function CardFrontBack({ card, compact }: { card: Card; compact?: boolean }) {
         <Markdown>{front}</Markdown>
       </div>
 
-      {back && (
-        <>
-          <div className="border-t border-dashed border-slate-300 dark:border-slate-600" />
-          <div
-            className={`text-slate-600 dark:text-slate-300 ${compact ? "line-clamp-3" : ""}`}
-          >
-            <Markdown>{back}</Markdown>
-          </div>
-        </>
+      {backs.length > 0 && compact && (
+        <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">
+          <Plus className="h-3.5 w-3.5" />
+          <span>
+            {backs.length} hidden {backs.length === 1 ? "section" : "sections"}
+          </span>
+        </div>
       )}
+
+      {backs.length > 0 &&
+        !compact &&
+        backs.map((section, i) => (
+          <div key={i}>
+            <div className="border-t border-dashed border-slate-300 dark:border-slate-600" />
+            <div className="text-slate-600 dark:text-slate-300 mt-3">
+              <Markdown>{section}</Markdown>
+            </div>
+          </div>
+        ))}
     </div>
   );
 }

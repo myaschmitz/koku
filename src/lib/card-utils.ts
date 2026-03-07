@@ -1,22 +1,33 @@
 /**
  * Split card content into front and back sections.
  * The delimiter is a line containing only "---" (horizontal rule).
+ * Multiple "---" delimiters create multiple hidden/back sections.
  */
 export function splitCardContent(content: string): {
   front: string;
   back: string | null;
+  backs: string[];
 } {
-  const idx = content.indexOf("\n---\n");
-  if (idx === -1) {
-    // Also check if content starts with --- (edge case)
-    if (content.startsWith("---\n")) {
-      return { front: "", back: content.slice(4).trim() };
-    }
-    return { front: content.trim(), back: null };
+  // Split on all occurrences of \n---\n
+  const parts = content.split("\n---\n");
+
+  // Handle edge case: content starts with ---
+  if (parts.length === 1 && content.startsWith("---\n")) {
+    const backContent = content.slice(4).trim();
+    return { front: "", back: backContent || null, backs: backContent ? [backContent] : [] };
   }
+
+  if (parts.length === 1) {
+    return { front: content.trim(), back: null, backs: [] };
+  }
+
+  const front = parts[0].trim();
+  const backs = parts.slice(1).map((p) => p.trim()).filter(Boolean);
+
   return {
-    front: content.slice(0, idx).trim(),
-    back: content.slice(idx + 5).trim() || null,
+    front,
+    back: backs.length > 0 ? backs.join("\n\n---\n\n") : null,
+    backs,
   };
 }
 

@@ -221,7 +221,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
 
       if (done) return;
 
-      const isFrontOnly = splitCardContent(card.content).back === null;
+      const isFrontOnly = splitCardContent(card.content).backs.length === 0;
       const revealed = isFrontOnly || showAnswer;
 
       if (!revealed) {
@@ -390,8 +390,8 @@ export function StudySession({ cards, settings }: StudySessionProps) {
 
       {/* Card */}
       {(() => {
-        const { front, back } = splitCardContent(card.content);
-        const isFrontOnly = back === null;
+        const { front, backs } = splitCardContent(card.content);
+        const isFrontOnly = backs.length === 0;
         const revealed = isFrontOnly || showAnswer;
 
         return (
@@ -409,20 +409,21 @@ export function StudySession({ cards, settings }: StudySessionProps) {
                 </div>
               </div>
 
-              {/* Back (revealed) */}
-              {revealed && back && (
-                <>
-                  <hr className="border-slate-200 dark:border-slate-700 my-4" />
-                  <div>
-                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                      Back
-                    </span>
-                    <div className="mt-2 text-slate-600 dark:text-slate-300">
-                      <Markdown>{back}</Markdown>
+              {/* Back sections (revealed) */}
+              {revealed &&
+                backs.map((section, i) => (
+                  <div key={i}>
+                    <hr className="border-slate-200 dark:border-slate-700 my-4" />
+                    <div>
+                      <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                        {backs.length === 1 ? "Back" : `Section ${i + 1}`}
+                      </span>
+                      <div className="mt-2 text-slate-600 dark:text-slate-300">
+                        <Markdown>{section}</Markdown>
+                      </div>
                     </div>
                   </div>
-                </>
-              )}
+                ))}
             </div>
 
             {/* Actions */}

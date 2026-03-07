@@ -85,7 +85,7 @@ export function CardForm({
           Content
         </label>
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">
-          Use <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded">---</code> on its own line to separate front and back.
+          Use <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded">---</code> on its own line to separate sections. Multiple separators create multiple hidden sections.
         </p>
         <MarkdownEditor
           value={content}
