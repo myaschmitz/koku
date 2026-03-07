@@ -16,7 +16,7 @@ import {
   PlayCircle,
   Plus,
 } from "lucide-react";
-import type { Card, Deck, Tag } from "@/lib/types";
+import type { Card, Deck } from "@/lib/types";
 import { CreateCardModal } from "@/components/create-card-modal";
 import { Markdown } from "@/components/markdown";
 import { splitCardContent, getCardTitle } from "@/lib/card-utils";
@@ -110,7 +110,7 @@ function CardFrontBack({ card, compact }: { card: Card; compact?: boolean }) {
   );
 }
 
-function CardMeta({ card, tags }: { card: Card; tags: Tag[] }) {
+function CardMeta({ card }: { card: Card }) {
   return (
     <div className="flex flex-wrap items-center gap-2 mt-3">
       {card.suspended && (
@@ -123,14 +123,6 @@ function CardMeta({ card, tags }: { card: Card; tags: Tag[] }) {
       >
         {STATE_LABELS[card.state]}
       </span>
-      {tags.map((tag) => (
-        <span
-          key={tag.id}
-          className="rounded-full bg-slate-100 dark:bg-slate-700 px-2 py-0.5 text-xs text-slate-600 dark:text-slate-400"
-        >
-          {tag.name}
-        </span>
-      ))}
       <span className="text-xs text-slate-400">
         Due: {new Date(card.due).toLocaleDateString()}
       </span>
@@ -145,7 +137,6 @@ export default function DeckDetailPage() {
   const supabase = createClient();
   const [deck, setDeck] = useState<Deck | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
-  const [cardTagsMap, setCardTagsMap] = useState<Record<string, Tag[]>>({});
   const [loading, setLoading] = useState(true);
   const [dueCount, setDueCount] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -192,36 +183,6 @@ export default function DeckDetailPage() {
       .eq("deck_id", deckId)
       .eq("suspended", false)
       .lte("due", now);
-
-    if (cardsData && cardsData.length > 0) {
-      const cardIds = cardsData.map((c) => c.id);
-      const { data: cardTagLinks } = await supabase
-        .from("card_tags")
-        .select("card_id, tag_id")
-        .in("card_id", cardIds);
-
-      if (cardTagLinks && cardTagLinks.length > 0) {
-        const tagIds = [...new Set(cardTagLinks.map((l) => l.tag_id))];
-        const { data: tagsData } = await supabase
-          .from("tags")
-          .select("*")
-          .in("id", tagIds);
-
-        const tagsById = new Map((tagsData ?? []).map((t) => [t.id, t]));
-        const map: Record<string, Tag[]> = {};
-        for (const link of cardTagLinks) {
-          const tag = tagsById.get(link.tag_id);
-          if (tag) {
-            (map[link.card_id] ??= []).push(tag);
-          }
-        }
-        setCardTagsMap(map);
-      } else {
-        setCardTagsMap({});
-      }
-    } else {
-      setCardTagsMap({});
-    }
 
     setCards(cardsData ?? []);
     setDueCount(count ?? 0);
@@ -446,7 +407,7 @@ export default function DeckDetailPage() {
                     />
                   </div>
                   <CardFrontBack card={card} compact />
-                  <CardMeta card={card} tags={cardTagsMap[card.id] ?? []} />
+                  <CardMeta card={card}  />
                 </div>
               ))}
             </div>
@@ -544,7 +505,6 @@ export default function DeckDetailPage() {
 
                     <CardMeta
                       card={selectedCard}
-                      tags={cardTagsMap[selectedCard.id] ?? []}
                     />
                   </div>
                 ) : (
@@ -590,7 +550,7 @@ export default function DeckDetailPage() {
                     />
                   </div>
                   <CardFrontBack card={card} />
-                  <CardMeta card={card} tags={cardTagsMap[card.id] ?? []} />
+                  <CardMeta card={card}  />
                 </div>
               ))}
             </div>

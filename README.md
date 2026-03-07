@@ -8,7 +8,7 @@ A spaced repetition flashcard app built for developers. Create decks, write card
 
 - **Spaced repetition** powered by [FSRS](https://github.com/open-spaced-repetition/ts-fsrs) for intelligent review scheduling
 - **Markdown support** with syntax-highlighted code blocks
-- **Deck organization** with tags for categorizing cards
+- **Deck organization** for grouping related cards
 - **Image support** including HEIC conversion
 - **Vacation mode** to pause reviews when you're away
 - **Dark mode** support
@@ -22,7 +22,7 @@ A spaced repetition flashcard app built for developers. Create decks, write card
 - [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs) (spaced repetition algorithm)
 - [react-markdown](https://github.com/remarkjs/react-markdown) + [Shiki](https://shiki.matsu.io) (syntax highlighting)
 
-## Getting Started
+## Getting Started - Running Locally
 
 ### Prerequisites
 

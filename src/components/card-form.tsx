@@ -1,16 +1,13 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { TagInput } from "@/components/tag-input";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { createClient } from "@/lib/supabase/client";
 import { uploadImage } from "@/lib/upload-image";
 import { getCardTitle } from "@/lib/card-utils";
-import type { Tag } from "@/lib/types";
 
 export interface CardFormData {
   content: string;
-  tags: Tag[];
 }
 
 interface CardFormProps {
@@ -35,12 +32,11 @@ export function CardForm({
   onDirtyChange,
 }: CardFormProps) {
   const [content, setContent] = useState(initial?.content ?? "");
-  const [tags, setTags] = useState<Tag[]>(initial?.tags ?? []);
 
   useEffect(() => {
-    const dirty = content.trim() !== "" || tags.length > 0;
+    const dirty = content.trim() !== "";
     onDirtyChange?.(dirty);
-  }, [content, tags, onDirtyChange]);
+  }, [content, onDirtyChange]);
   const [saving, setSaving] = useState(false);
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
@@ -80,7 +76,6 @@ export function CardForm({
     setSaving(true);
     await onSubmit({
       content: content.trim(),
-      tags,
     });
     setSaving(false);
   };
@@ -110,9 +105,6 @@ export function CardForm({
           deck.
         </p>
       )}
-
-      {/* Tags */}
-      <TagInput selectedTags={tags} onChange={setTags} userId={userId} />
 
       <button
         type="submit"

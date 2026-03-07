@@ -13,7 +13,7 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Delete all user data (cascades handle cards, review_logs, card_tags)
+  // Delete all user data (cascades handle cards, review_logs)
   // Storage images need manual cleanup
   const { data: cards } = await supabase
     .from("cards")

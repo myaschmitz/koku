@@ -96,22 +96,13 @@ export function CreateCardModal({
   };
 
   const handleSubmit = async (data: CardFormData) => {
-    const { data: card, error } = await supabase
+    const { error } = await supabase
       .from("cards")
       .insert({
         deck_id: deckId,
         user_id: userId,
         content: data.content,
       })
-      .select("id")
-      .single();
-
-    if (!error && card && data.tags.length > 0) {
-      await supabase
-        .from("card_tags")
-        .insert(data.tags.map((tag) => ({ card_id: card.id, tag_id: tag.id })));
-    }
-
     if (!error) {
       onCreated();
       setShowSuccess(true);
