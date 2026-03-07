@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 export default function LoginPage() {
@@ -8,6 +9,8 @@ export default function LoginPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
+  const searchParams = useSearchParams();
+  const authError = searchParams.get("error");
 
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
@@ -100,6 +103,12 @@ export default function LoginPage() {
             {loading ? "Sending..." : "Send magic link"}
           </button>
         </form>
+
+        {authError && (
+          <p className="text-center text-sm text-red-600 dark:text-red-400">
+            Auth error: {authError}
+          </p>
+        )}
 
         {message && (
           <p className="text-center text-sm text-slate-600 dark:text-slate-400">
