@@ -22,6 +22,7 @@ interface CardFormProps {
   checkDuplicate?: (
     title: string,
   ) => Promise<{ id: string; title: string } | null>;
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 export function CardForm({
@@ -31,9 +32,15 @@ export function CardForm({
   userId,
   cardId,
   checkDuplicate,
+  onDirtyChange,
 }: CardFormProps) {
   const [content, setContent] = useState(initial?.content ?? "");
   const [tags, setTags] = useState<Tag[]>(initial?.tags ?? []);
+
+  useEffect(() => {
+    const dirty = content.trim() !== "" || tags.length > 0;
+    onDirtyChange?.(dirty);
+  }, [content, tags, onDirtyChange]);
   const [saving, setSaving] = useState(false);
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);

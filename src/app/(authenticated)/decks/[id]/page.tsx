@@ -433,18 +433,17 @@ export default function DeckDetailPage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") router.push(`/cards/${card.id}`);
                   }}
-                  className="group block cursor-pointer rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                  className="group relative block cursor-pointer rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1 min-w-0" />
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <CardActions
-                        card={card}
-                        onDelete={handleDeleteCard}
-                        onToggleSuspend={handleToggleSuspend}
-                        hideUntilHover
-                      />
-                    </div>
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-0.5 rounded-md bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 shadow-sm px-1 py-0.5"
+                  >
+                    <CardActions
+                      card={card}
+                      onDelete={handleDeleteCard}
+                      onToggleSuspend={handleToggleSuspend}
+                    />
                   </div>
                   <CardFrontBack card={card} compact />
                   <CardMeta card={card} tags={cardTagsMap[card.id] ?? []} />
