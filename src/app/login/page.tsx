@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function LoginPage() {
@@ -40,17 +41,19 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/koku-circle-logo.svg"
-            alt="Koku logo"
-            width={56}
-            height={56}
-            className="mx-auto mb-4 dark:invert"
-          />
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-            Koku
-          </h1>
+          <Link href="/" className="inline-block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/koku-circle-logo.svg"
+              alt="Koku logo"
+              width={56}
+              height={56}
+              className="mx-auto mb-4 dark:invert"
+            />
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+              Koku
+            </h1>
+          </Link>
           <p className="mt-2 text-slate-600 dark:text-slate-400">
             Spaced repetition
           </p>
