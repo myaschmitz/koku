@@ -3,10 +3,12 @@
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Pencil, Trash2 } from "lucide-react";
 import type { DeckWithCounts } from "@/lib/types";
 
 export default function DecksPage() {
+  const router = useRouter();
   const supabase = createClient();
   const [decks, setDecks] = useState<DeckWithCounts[]>([]);
   const [loading, setLoading] = useState(true);
@@ -270,13 +272,13 @@ export default function DecksPage() {
                 </div>
                 {deck.due_count > 0 && (
                   <div className="flex gap-2">
-                    <Link
-                      href={`/study/${deck.id}`}
-                      onClick={(e) => e.stopPropagation()}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); router.push(`/study/${deck.id}`); }}
                       className="rounded-lg bg-blue-500 dark:bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
                     >
                       Study ({deck.due_count})
-                    </Link>
+                    </button>
                   </div>
                 )}
               </Link>

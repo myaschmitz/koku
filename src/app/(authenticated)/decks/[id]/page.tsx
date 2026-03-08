@@ -14,6 +14,8 @@ import {
   PauseCircle,
   PlayCircle,
   Plus,
+  Copy,
+  Check,
 } from "lucide-react";
 import type { Card, Deck } from "@/lib/types";
 import { CreateCardModal } from "@/components/create-card-modal";
@@ -31,6 +33,30 @@ const STATE_COLORS = [
 
 type ViewMode = "grid" | "column" | "list";
 
+function CopyButton({ content }: { content: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+      title={copied ? "Copied!" : "Copy markdown"}
+    >
+      {copied ? (
+        <Check className="h-4 w-4 text-green-500" />
+      ) : (
+        <Copy className="h-4 w-4" />
+      )}
+    </button>
+  );
+}
+
 function CardActions({
   card,
   onDelete,
@@ -46,6 +72,7 @@ function CardActions({
     <div
       className={`flex gap-1 ${hideUntilHover ? "opacity-0 group-hover:opacity-100 transition-opacity" : ""}`}
     >
+      <CopyButton content={card.content} />
       <button
         type="button"
         onClick={() => onToggleSuspend(card.id, card.suspended)}
@@ -464,6 +491,7 @@ export default function DeckDetailPage() {
                     <div className="flex items-start justify-between mb-4">
                       <div />
                       <div className="flex gap-1">
+                        <CopyButton content={selectedCard.content} />
                         <button
                           type="button"
                           onClick={() =>

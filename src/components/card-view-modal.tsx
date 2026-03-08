@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   X,
@@ -8,6 +8,8 @@ import {
   Trash2,
   PauseCircle,
   PlayCircle,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Markdown } from "@/components/markdown";
 import { splitCardContent } from "@/lib/card-utils";
@@ -36,6 +38,8 @@ export function CardViewModal({
   onToggleSuspend,
   onDelete,
 }: CardViewModalProps) {
+  const [copied, setCopied] = useState(false);
+
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -71,6 +75,12 @@ export function CardViewModal({
 
   const { front, backs } = splitCardContent(card.content);
 
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(card.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const handleDelete = () => {
     onDelete(card.id);
     onClose();
@@ -86,6 +96,18 @@ export function CardViewModal({
               Card
             </h2>
             <div className="flex gap-1">
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                title={copied ? "Copied!" : "Copy markdown"}
+              >
+                {copied ? (
+                  <Check className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </button>
               <button
                 type="button"
                 onClick={() => onToggleSuspend(card.id, card.suspended)}
