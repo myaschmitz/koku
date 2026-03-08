@@ -53,6 +53,7 @@ export default function SettingsPage() {
   const [togglingVacation, setTogglingVacation] = useState(false);
   const [userTemplates, setUserTemplates] = useState<CardTemplate[]>([]);
 
+
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {

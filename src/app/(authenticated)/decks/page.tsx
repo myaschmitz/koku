@@ -4,9 +4,10 @@ import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Pencil, Trash2, Upload } from "lucide-react";
+import { Pencil, Trash2, Upload, Download } from "lucide-react";
 import type { DeckWithCounts } from "@/lib/types";
 import { ImportModal } from "@/components/import-modal";
+import { ExportAllModal } from "@/components/export-all-modal";
 
 export default function DecksPage() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function DecksPage() {
   const [editDesc, setEditDesc] = useState("");
   const [totalDue, setTotalDue] = useState(0);
   const [showImport, setShowImport] = useState(false);
+  const [showExportAll, setShowExportAll] = useState(false);
 
   const fetchDecks = async () => {
     const {
@@ -136,6 +138,14 @@ export default function DecksPage() {
               Study All Due ({totalDue})
             </Link>
           )}
+          <button
+            type="button"
+            onClick={() => setShowExportAll(true)}
+            className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Export
+          </button>
           <button
             type="button"
             onClick={() => setShowImport(true)}
@@ -302,6 +312,11 @@ export default function DecksPage() {
         open={showImport}
         onClose={() => setShowImport(false)}
         onImported={fetchDecks}
+      />
+
+      <ExportAllModal
+        open={showExportAll}
+        onClose={() => setShowExportAll(false)}
       />
     </div>
   );
