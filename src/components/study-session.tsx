@@ -404,7 +404,9 @@ export function StudySession({ cards, settings }: StudySessionProps) {
                     Front
                   </span>
                 )}
-                <div className={`${isFrontOnly ? "" : "mt-2"} text-slate-600 dark:text-slate-300`}>
+                <div
+                  className={`${isFrontOnly ? "" : "mt-2"} text-slate-600 dark:text-slate-300`}
+                >
                   <Markdown>{front}</Markdown>
                 </div>
               </div>
@@ -433,7 +435,9 @@ export function StudySession({ cards, settings }: StudySessionProps) {
                 className="w-full rounded-lg bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 py-3 text-sm font-medium hover:bg-slate-700 dark:hover:bg-slate-300 transition-colors"
               >
                 Show Answer
-                <span className="ml-2 text-xs opacity-60">Space</span>
+                <span className="ml-2 text-xs opacity-60 rounded bg-slate-500 dark:bg-slate-400 px-1 py-0.5">
+                  Space
+                </span>
               </button>
             ) : (
               <div className="grid grid-cols-4 gap-3">
@@ -449,7 +453,9 @@ export function StudySession({ cards, settings }: StudySessionProps) {
                         {btn.shortcut}
                       </span>
                     </div>
-                    <div className="text-xs opacity-80 mt-0.5">{btn.interval}</div>
+                    <div className="text-xs opacity-80 mt-0.5">
+                      {btn.interval}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -465,7 +471,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
           className="w-full text-center text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
         >
           Undo last rating{" "}
-          <span className="opacity-60 font-mono text-xs">U</span>
+          <span className="ml-0.5 inline-flex items-center justify-center rounded bg-slate-200 dark:bg-slate-700 px-1 py-0.5 text-[10px] font-mono leading-none">U</span>
         </button>
       )}
     </div>
