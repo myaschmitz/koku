@@ -47,6 +47,8 @@ export interface UserSettings {
   theme: string;
   vacation_mode: boolean;
   vacation_started_at: string | null;
+  font_size: number; // px, default 16
+  font_family: string; // "sans" | "serif" | "mono"
   created_at: string;
   updated_at: string;
 }

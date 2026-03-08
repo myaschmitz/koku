@@ -37,6 +37,8 @@ function makeSettings(overrides: Partial<UserSettings> = {}): UserSettings {
     theme: "system",
     vacation_mode: false,
     vacation_started_at: null,
+    font_size: 16,
+    font_family: "sans",
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...overrides,

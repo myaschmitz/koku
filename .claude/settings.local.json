@@ -4,7 +4,9 @@
       "Bash(ls -la /c/Users/Mya/Documents/repos/koku/src/app/\\\\\\(authenticated\\\\\\))",
       "Bash(npx next build)",
       "Bash(npm install -D vitest @vitest/coverage-v8)",
-      "Bash(npm test)"
+      "Bash(npm test)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx vitest run)"
     ]
   }
 }

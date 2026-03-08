@@ -7,6 +7,18 @@ import { Sun, Moon, Monitor, Palmtree } from "lucide-react";
 import { toast } from "sonner";
 import type { UserSettings } from "@/lib/types";
 
+const FONT_FAMILIES: Record<string, string> = {
+  sans: "var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif",
+  serif: "Georgia, Cambria, 'Times New Roman', Times, serif",
+  mono: "var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace",
+};
+
+const FONT_FAMILY_OPTIONS = [
+  { value: "sans", label: "Sans" },
+  { value: "serif", label: "Serif" },
+  { value: "mono", label: "Mono" },
+] as const;
+
 const AGAIN_OPTIONS = [
   { label: "1 hour", value: 1 },
   { label: "6 hours", value: 6 },
@@ -69,6 +81,8 @@ export default function SettingsPage() {
           data.again_interval_hours,
           data.hard_interval_hours,
           data.max_new_cards_per_day,
+          data.font_size,
+          data.font_family,
         ]);
       }
     };
@@ -87,6 +101,8 @@ export default function SettingsPage() {
         again_interval_hours: updatedSettings.again_interval_hours,
         hard_interval_hours: updatedSettings.hard_interval_hours,
         max_new_cards_per_day: updatedSettings.max_new_cards_per_day,
+        font_size: updatedSettings.font_size,
+        font_family: updatedSettings.font_family,
         theme: currentTheme,
         updated_at: new Date().toISOString(),
       })
@@ -107,6 +123,8 @@ export default function SettingsPage() {
       settings.again_interval_hours,
       settings.hard_interval_hours,
       settings.max_new_cards_per_day,
+      settings.font_size,
+      settings.font_family,
     ]);
 
     if (currentValues === lastSavedValues.current) return;
@@ -125,6 +143,8 @@ export default function SettingsPage() {
     settings?.again_interval_hours,
     settings?.hard_interval_hours,
     settings?.max_new_cards_per_day,
+    settings?.font_size,
+    settings?.font_family,
   ]);
 
   const handleThemeChange = (newTheme: string) => {
@@ -132,6 +152,28 @@ export default function SettingsPage() {
     if (settings) {
       saveSettings(settings, newTheme);
     }
+  };
+
+  const applyFontSettings = (fontSize: number, fontFamily: string) => {
+    const root = document.documentElement;
+    root.style.setProperty("--card-font-size", `${fontSize}px`);
+    root.style.setProperty(
+      "--card-font-family",
+      FONT_FAMILIES[fontFamily] ?? FONT_FAMILIES.sans,
+    );
+  };
+
+  const handleFontSizeChange = (size: number) => {
+    if (!settings) return;
+    const clamped = Math.max(12, Math.min(24, size));
+    setSettings({ ...settings, font_size: clamped });
+    applyFontSettings(clamped, settings.font_family);
+  };
+
+  const handleFontFamilyChange = (family: string) => {
+    if (!settings) return;
+    setSettings({ ...settings, font_family: family });
+    applyFontSettings(settings.font_size, family);
   };
 
   const handleVacationToggle = async () => {
@@ -343,6 +385,65 @@ export default function SettingsPage() {
               ))}
             </div>
           )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            Font Size
+          </label>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-slate-500 w-8">12</span>
+            <input
+              type="range"
+              min={12}
+              max={24}
+              step={1}
+              value={settings.font_size ?? 16}
+              onChange={(e) => handleFontSizeChange(Number(e.target.value))}
+              className="flex-1 accent-blue-500"
+              aria-label="Font size"
+            />
+            <span className="text-xs text-slate-500 w-8">24</span>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 w-12 text-right">
+              {settings.font_size ?? 16}px
+            </span>
+          </div>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+            The font size displayed on cards in both display and editing.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            Font Style
+          </label>
+          <div className="flex gap-2">
+            {FONT_FAMILY_OPTIONS.map((opt) => (
+              <button
+                type="button"
+                key={opt.value}
+                onClick={() => handleFontFamilyChange(opt.value)}
+                className={`flex flex-col items-center gap-1 px-4 py-3 rounded-lg border transition-colors ${
+                  (settings.font_family ?? "sans") === opt.value
+                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                    : "border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-500"
+                }`}
+              >
+                <span
+                  className={`text-lg font-medium ${
+                    opt.value === "serif"
+                      ? "font-serif"
+                      : opt.value === "mono"
+                        ? "font-mono"
+                        : "font-sans"
+                  }`}
+                >
+                  Aa
+                </span>
+                <span className="text-xs">{opt.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 

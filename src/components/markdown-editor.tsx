@@ -753,7 +753,7 @@ export function MarkdownEditor({
             required={required}
             autoFocus={autoFocus}
             disabled={uploading}
-            className="w-full bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:outline-none resize-y font-mono disabled:opacity-60"
+            className="w-full bg-white dark:bg-slate-800 px-3 py-2 focus:outline-none resize-y disabled:opacity-60 card-font"
           />
           {uploading && (
             <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
