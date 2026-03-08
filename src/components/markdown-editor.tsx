@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   Bold,
   Italic,
@@ -16,6 +16,7 @@ import {
   Redo2,
 } from "lucide-react";
 import { Markdown } from "@/components/markdown";
+import TurndownService from "turndown";
 
 interface MarkdownEditorProps {
   value: string;
@@ -306,10 +307,34 @@ export function MarkdownEditor({
   required,
   autoFocus,
 }: MarkdownEditorProps) {
+  const turndown = useMemo(() => {
+    const td = new TurndownService({
+      headingStyle: "atx",
+      codeBlockStyle: "fenced",
+      bulletListMarker: "-",
+    });
+    td.addRule("listItem", {
+      filter: "li",
+      replacement(content, node) {
+        content = content.replace(/^\n+/, "").replace(/\n+$/, "\n");
+        let prefix = "- ";
+        const parent = node.parentNode;
+        if (parent && parent.nodeName === "OL") {
+          const items = Array.from(parent.children);
+          const index = items.indexOf(node as Element) + 1;
+          prefix = `${index}. `;
+        }
+        return prefix + content.replace(/\n/g, "\n  ") + "\n";
+      },
+    });
+    return td;
+  }, []);
+
   const [mode, setMode] = useState<"write" | "preview">("write");
   const [uploading, setUploading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const shiftHeldRef = useRef(false);
 
   // ── Undo / Redo history ──
   const [historyState, setHistoryState] = useState({ undoLen: 0, redoLen: 0 });
@@ -453,24 +478,40 @@ export function MarkdownEditor({
 
   const handlePaste = useCallback(
     async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-      if (!onImageUpload) return;
-      const items = e.clipboardData?.items;
-      if (!items) return;
-
-      const files: File[] = [];
-      for (const item of items) {
-        if (item.type.startsWith("image/") || item.type === "") {
-          const file = item.getAsFile();
-          if (file) files.push(file);
+      // Handle image pastes
+      if (onImageUpload) {
+        const items = e.clipboardData?.items;
+        if (items) {
+          const files: File[] = [];
+          for (const item of items) {
+            if (item.type.startsWith("image/") || item.type === "") {
+              const file = item.getAsFile();
+              if (file) files.push(file);
+            }
+          }
+          if (files.length > 0) {
+            e.preventDefault();
+            await handleImageFiles(files);
+            return;
+          }
         }
       }
 
-      if (files.length > 0) {
+      // Shift+Paste: paste as plain text (default textarea behavior)
+      if (shiftHeldRef.current) return;
+
+      // Normal paste: convert HTML to markdown if HTML is available
+      const html = e.clipboardData?.getData("text/html");
+      if (html) {
         e.preventDefault();
-        await handleImageFiles(files);
+        const markdown = turndown.turndown(html);
+        const ta = textareaRef.current;
+        if (ta) {
+          insertText(ta, markdown, onChange);
+        }
       }
     },
-    [onImageUpload, handleImageFiles],
+    [onImageUpload, handleImageFiles, turndown, onChange],
   );
 
   const handleDrop = useCallback(
@@ -553,6 +594,8 @@ export function MarkdownEditor({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      shiftHeldRef.current = e.shiftKey;
+
       // Auto-complete triple backticks: when user types ` and the two
       // preceding characters are already ``, insert a newline + closing ```
       // and keep the cursor right after the opening ``` (for language tag).
@@ -702,6 +745,7 @@ export function MarkdownEditor({
             value={value}
             onChange={(e) => trackedOnChange(e.target.value)}
             onKeyDown={handleKeyDown}
+            onKeyUp={() => { shiftHeldRef.current = false; }}
             onPaste={handlePaste}
             onDrop={handleDrop}
             placeholder={placeholder}
