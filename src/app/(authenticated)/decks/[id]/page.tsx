@@ -407,7 +407,7 @@ export default function DeckDetailPage() {
                     />
                   </div>
                   <CardFrontBack card={card} compact />
-                  <CardMeta card={card}  />
+                  <CardMeta card={card} />
                 </div>
               ))}
             </div>
@@ -437,7 +437,7 @@ export default function DeckDetailPage() {
                     className={`w-full text-left rounded-lg border p-3 transition-colors ${
                       selectedCardId === card.id
                         ? "border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30"
-                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600"
+                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     }`}
                   >
                     <p className="font-medium text-slate-900 dark:text-slate-100 truncate">
@@ -503,9 +503,7 @@ export default function DeckDetailPage() {
 
                     <CardFrontBack card={selectedCard} />
 
-                    <CardMeta
-                      card={selectedCard}
-                    />
+                    <CardMeta card={selectedCard} />
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-full text-slate-400">
@@ -550,7 +548,7 @@ export default function DeckDetailPage() {
                     />
                   </div>
                   <CardFrontBack card={card} />
-                  <CardMeta card={card}  />
+                  <CardMeta card={card} />
                 </div>
               ))}
             </div>

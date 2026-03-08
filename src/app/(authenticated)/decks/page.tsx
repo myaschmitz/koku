@@ -227,9 +227,10 @@ export default function DecksPage() {
                 </div>
               </form>
             ) : (
-              <div
+              <Link
                 key={deck.id}
-                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-3"
+                href={`/decks/${deck.id}`}
+                className="block rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer"
               >
                 <div className="flex items-start justify-between">
                   <div>
@@ -244,14 +245,14 @@ export default function DecksPage() {
                   </div>
                   <div className="flex gap-1">
                     <button
-                      onClick={() => startEdit(deck)}
+                      onClick={(e) => { e.preventDefault(); startEdit(deck); }}
                       className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                       title="Edit"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => handleDelete(deck.id)}
+                      onClick={(e) => { e.preventDefault(); handleDelete(deck.id); }}
                       className="p-1 text-slate-400 hover:text-red-500"
                       title="Delete"
                     >
@@ -267,23 +268,18 @@ export default function DecksPage() {
                     </span>
                   )}
                 </div>
-                <div className="flex gap-2">
-                  <Link
-                    href={`/decks/${deck.id}`}
-                    className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    View Cards
-                  </Link>
-                  {deck.due_count > 0 && (
+                {deck.due_count > 0 && (
+                  <div className="flex gap-2">
                     <Link
                       href={`/study/${deck.id}`}
+                      onClick={(e) => e.stopPropagation()}
                       className="rounded-lg bg-blue-500 dark:bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
                     >
                       Study ({deck.due_count})
                     </Link>
-                  )}
-                </div>
-              </div>
+                  </div>
+                )}
+              </Link>
             ),
           )}
         </div>
