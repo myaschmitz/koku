@@ -1,0 +1,176 @@
+"use client";
+
+import { useEffect, useCallback } from "react";
+import Link from "next/link";
+import {
+  X,
+  Pencil,
+  Trash2,
+  PauseCircle,
+  PlayCircle,
+} from "lucide-react";
+import { Markdown } from "@/components/markdown";
+import { splitCardContent } from "@/lib/card-utils";
+import type { Card } from "@/lib/types";
+
+const STATE_LABELS = ["New", "Learning", "Review", "Relearning"];
+const STATE_COLORS = [
+  "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+  "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
+  "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+  "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
+];
+
+interface CardViewModalProps {
+  card: Card | null;
+  open: boolean;
+  onClose: () => void;
+  onToggleSuspend: (cardId: string, currentSuspended: boolean) => void;
+  onDelete: (cardId: string) => void;
+}
+
+export function CardViewModal({
+  card,
+  open,
+  onClose,
+  onToggleSuspend,
+  onDelete,
+}: CardViewModalProps) {
+  const handleEscape = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    },
+    [onClose],
+  );
+
+  useEffect(() => {
+    if (open) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      return () => {
+        document.removeEventListener("keydown", handleEscape);
+        document.body.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        window.scrollTo(0, scrollY);
+      };
+    }
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [open, handleEscape]);
+
+  if (!open || !card) return null;
+
+  const { front, backs } = splitCardContent(card.content);
+
+  const handleDelete = () => {
+    onDelete(card.id);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-[5vh]">
+      <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
+      <div className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              Card
+            </h2>
+            <div className="flex gap-1">
+              <button
+                type="button"
+                onClick={() => onToggleSuspend(card.id, card.suspended)}
+                className={`p-1.5 rounded-md transition-colors ${
+                  card.suspended
+                    ? "text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/30"
+                    : "text-slate-400 hover:text-yellow-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                }`}
+                title={card.suspended ? "Unsuspend" : "Suspend"}
+              >
+                {card.suspended ? (
+                  <PlayCircle className="h-4 w-4" />
+                ) : (
+                  <PauseCircle className="h-4 w-4" />
+                )}
+              </button>
+              <Link
+                href={`/cards/${card.id}/edit`}
+                className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                title="Edit"
+              >
+                <Pencil className="h-4 w-4" />
+              </Link>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                title="Delete"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-md p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="px-6 py-4 max-h-[80vh] overflow-y-auto space-y-4">
+          <div>
+            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+              Front
+            </span>
+            <div className="mt-2 text-slate-600 dark:text-slate-300">
+              <Markdown>{front}</Markdown>
+            </div>
+          </div>
+
+          {backs.map((section, i) => (
+            <div key={i}>
+              <hr className="border-slate-200 dark:border-slate-700" />
+              <div className="mt-4">
+                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  {backs.length === 1 ? "Back" : `Section ${i + 1}`}
+                </span>
+                <div className="mt-2 text-slate-600 dark:text-slate-300">
+                  <Markdown>{section}</Markdown>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+            {card.suspended && (
+              <span className="rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 px-2 py-0.5 text-xs font-medium">
+                Suspended
+              </span>
+            )}
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATE_COLORS[card.state]}`}
+            >
+              {STATE_LABELS[card.state]}
+            </span>
+            <span className="text-xs text-slate-400">
+              Due: {new Date(card.due).toLocaleDateString()}
+            </span>
+            <span className="text-xs text-slate-400">
+              Reps: {card.reps}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Pencil,
@@ -18,6 +17,7 @@ import {
 } from "lucide-react";
 import type { Card, Deck } from "@/lib/types";
 import { CreateCardModal } from "@/components/create-card-modal";
+import { CardViewModal } from "@/components/card-view-modal";
 import { Markdown } from "@/components/markdown";
 import { splitCardContent, getCardTitle } from "@/lib/card-utils";
 
@@ -132,7 +132,6 @@ function CardMeta({ card }: { card: Card }) {
 
 export default function DeckDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const deckId = params.id as string;
   const supabase = createClient();
   const [deck, setDeck] = useState<Deck | null>(null);
@@ -143,6 +142,7 @@ export default function DeckDetailPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [viewCardId, setViewCardId] = useState<string | null>(null);
   const columnDetailRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -390,9 +390,9 @@ export default function DeckDetailPage() {
                   role="link"
                   tabIndex={0}
                   aria-label={`View card: ${getCardTitle(card.content)}`}
-                  onClick={() => router.push(`/cards/${card.id}`)}
+                  onClick={() => setViewCardId(card.id)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") router.push(`/cards/${card.id}`);
+                    if (e.key === "Enter") setViewCardId(card.id);
                   }}
                   className="group relative block cursor-pointer rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
                 >
@@ -534,12 +534,13 @@ export default function DeckDetailPage() {
                   className="group rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-3">
-                    <Link
-                      href={`/cards/${card.id}`}
+                    <button
+                      type="button"
+                      onClick={() => setViewCardId(card.id)}
                       className="text-sm text-slate-400 hover:text-blue-500 transition-colors"
                     >
                       View card →
-                    </Link>
+                    </button>
                     <CardActions
                       card={card}
                       onDelete={handleDeleteCard}
@@ -565,6 +566,17 @@ export default function DeckDetailPage() {
           onCreated={refreshCards}
         />
       )}
+
+      <CardViewModal
+        card={cards.find((c) => c.id === viewCardId) ?? null}
+        open={viewCardId !== null}
+        onClose={() => setViewCardId(null)}
+        onToggleSuspend={handleToggleSuspend}
+        onDelete={(id) => {
+          setViewCardId(null);
+          handleDeleteCard(id);
+        }}
+      />
     </div>
   );
 }
