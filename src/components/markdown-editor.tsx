@@ -356,18 +356,24 @@ export function MarkdownEditor({
     });
   }, []);
 
-  /** Save a snapshot before a programmatic mutation (formatting, etc.). */
-  const saveBeforeAction = useCallback(() => {
+  /** Flush any pending typing snapshot to the undo stack immediately. */
+  const flushTyping = useCallback(() => {
     clearTimeout(typingTimerRef.current);
-    const ta = textareaRef.current;
-    // Flush any unsaved typing first
-    if (value !== lastPushedRef.current) {
+    const cur = textareaRef.current;
+    if (lastPushedRef.current !== value) {
       undoStackRef.current.push({
         val: lastPushedRef.current,
-        cur: ta?.selectionStart ?? 0,
+        cur: cur?.selectionStart ?? 0,
       });
       lastPushedRef.current = value;
+      syncHistory();
     }
+  }, [value, syncHistory]);
+
+  /** Save a snapshot before a programmatic mutation (formatting, paste, etc.). */
+  const saveBeforeAction = useCallback(() => {
+    flushTyping();
+    const ta = textareaRef.current;
     // Push the current (pre-action) state
     undoStackRef.current.push({
       val: value,
@@ -375,7 +381,7 @@ export function MarkdownEditor({
     });
     redoStackRef.current = [];
     syncHistory();
-  }, [value, syncHistory]);
+  }, [value, flushTyping, syncHistory]);
 
   // After a formatting action fires onChange, mark the new value as "pushed"
   // so the next typing debounce doesn't double-record it.
@@ -388,6 +394,15 @@ export function MarkdownEditor({
   }, [value]);
 
   const undo = useCallback(() => {
+    clearTimeout(typingTimerRef.current);
+    // Flush unsaved typing so we don't lose intermediate state
+    if (lastPushedRef.current !== value) {
+      undoStackRef.current.push({
+        val: lastPushedRef.current,
+        cur: textareaRef.current?.selectionStart ?? 0,
+      });
+      lastPushedRef.current = value;
+    }
     if (undoStackRef.current.length === 0) return;
     const ta = textareaRef.current;
     redoStackRef.current.push({
@@ -504,14 +519,29 @@ export function MarkdownEditor({
       const html = e.clipboardData?.getData("text/html");
       if (html) {
         e.preventDefault();
+        saveBeforeAction();
+        justFormattedRef.current = true;
         const markdown = turndown.turndown(html);
         const ta = textareaRef.current;
         if (ta) {
           insertText(ta, markdown, onChange);
         }
+        return;
+      }
+
+      // Plain text paste: save undo boundary so paste is its own undo step
+      const text = e.clipboardData?.getData("text/plain");
+      if (text) {
+        e.preventDefault();
+        saveBeforeAction();
+        justFormattedRef.current = true;
+        const ta = textareaRef.current;
+        if (ta) {
+          insertText(ta, text, onChange);
+        }
       }
     },
-    [onImageUpload, handleImageFiles, turndown, onChange],
+    [onImageUpload, handleImageFiles, turndown, onChange, saveBeforeAction],
   );
 
   const handleDrop = useCallback(
@@ -596,6 +626,11 @@ export function MarkdownEditor({
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       shiftHeldRef.current = e.shiftKey;
 
+      // Break undo grouping on Enter so each line is a separate undo step
+      if (e.key === "Enter") {
+        flushTyping();
+      }
+
       // Auto-complete triple backticks: when user types ` and the two
       // preceding characters are already ``, insert a newline + closing ```
       // and keep the cursor right after the opening ``` (for language tag).
@@ -658,7 +693,7 @@ export function MarkdownEditor({
         handleToolbar(action);
       }
     },
-    [handleToolbar, undo, redo, saveBeforeAction, onChange],
+    [handleToolbar, undo, redo, saveBeforeAction, flushTyping, onChange],
   );
 
   const toolbarButtons = [
