@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { CardForm, type CardFormData } from "@/components/card-form";
-import { X, Check } from "lucide-react";
+import { X } from "lucide-react";
 
 interface CreateCardModalProps {
   deckId: string;
@@ -24,7 +24,6 @@ export function CreateCardModal({
 }: CreateCardModalProps) {
   const supabase = createClient();
   const [formKey, setFormKey] = useState(0);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [showDiscard, setShowDiscard] = useState(false);
 
@@ -107,11 +106,8 @@ export function CreateCardModal({
       })
     if (!error) {
       onCreated();
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        setFormKey((k) => k + 1);
-      }, 800);
+      setDirty(false);
+      onClose();
     }
   };
 
@@ -134,12 +130,6 @@ export function CreateCardModal({
         </div>
 
         <div className="px-6 py-4 max-h-[80vh] overflow-y-auto">
-          {showSuccess && (
-            <div className="mb-4 flex items-center gap-2 rounded-lg bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-700 dark:text-green-400">
-              <Check className="h-4 w-4" />
-              Card created! Add another below.
-            </div>
-          )}
           <CardForm
             key={formKey}
             initial={initialContent ? { content: initialContent } : undefined}
