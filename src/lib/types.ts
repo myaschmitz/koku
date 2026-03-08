@@ -49,6 +49,17 @@ export interface UserSettings {
   vacation_started_at: string | null;
   font_size: number; // px, default 16
   font_family: string; // "sans" | "serif" | "mono"
+  default_template: string; // "flashcard", "no-template", or a UUID
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CardTemplate {
+  id: string;
+  user_id: string;
+  name: string;
+  content: string;
+  icon: string;
   created_at: string;
   updated_at: string;
 }

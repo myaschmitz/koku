@@ -3,9 +3,10 @@
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Monitor, Palmtree } from "lucide-react";
+import { Sun, Moon, Monitor, Palmtree, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import type { UserSettings } from "@/lib/types";
+import type { UserSettings, CardTemplate } from "@/lib/types";
+import { BUILTIN_TEMPLATES } from "@/lib/card-templates";
 
 const FONT_FAMILIES: Record<string, string> = {
   sans: "var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif",
@@ -50,6 +51,7 @@ export default function SettingsPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [togglingVacation, setTogglingVacation] = useState(false);
+  const [userTemplates, setUserTemplates] = useState<CardTemplate[]>([]);
 
   useEffect(() => setMounted(true), []);
 
@@ -74,6 +76,15 @@ export default function SettingsPage() {
           setTheme(data.theme);
         }
       }
+
+      // Fetch user templates
+      const { data: templates } = await supabase
+        .from("card_templates")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true });
+      if (templates) setUserTemplates(templates as CardTemplate[]);
+
       setLoading(false);
       // Snapshot initial values so auto-save only fires on user changes
       if (data) {
@@ -83,6 +94,7 @@ export default function SettingsPage() {
           data.max_new_cards_per_day,
           data.font_size,
           data.font_family,
+          data.default_template,
         ]);
       }
     };
@@ -103,6 +115,7 @@ export default function SettingsPage() {
         max_new_cards_per_day: updatedSettings.max_new_cards_per_day,
         font_size: updatedSettings.font_size,
         font_family: updatedSettings.font_family,
+        default_template: updatedSettings.default_template,
         theme: currentTheme,
         updated_at: new Date().toISOString(),
       })
@@ -125,6 +138,7 @@ export default function SettingsPage() {
       settings.max_new_cards_per_day,
       settings.font_size,
       settings.font_family,
+      settings.default_template,
     ]);
 
     if (currentValues === lastSavedValues.current) return;
@@ -145,6 +159,7 @@ export default function SettingsPage() {
     settings?.max_new_cards_per_day,
     settings?.font_size,
     settings?.font_family,
+    settings?.default_template,
   ]);
 
   const handleThemeChange = (newTheme: string) => {
@@ -447,6 +462,85 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* Default Card Template */}
+      <section className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          Default Card Template
+        </h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Choose which template is used when you press the New Card button/the{" "}
+          <kbd className="rounded bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 text-xs font-mono">
+            N
+          </kbd>{" "}
+          shortcut.
+        </p>
+
+        <select
+          aria-label="Default card template"
+          value={settings.default_template ?? "flashcard"}
+          onChange={(e) =>
+            setSettings({ ...settings, default_template: e.target.value })
+          }
+          className="w-full sm:w-64 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        >
+          {BUILTIN_TEMPLATES.map((template) => (
+            <option key={template.id} value={template.id}>
+              {template.name}
+            </option>
+          ))}
+          {userTemplates.length > 0 && (
+            <optgroup label="Custom templates">
+              {userTemplates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.name}
+                </option>
+              ))}
+            </optgroup>
+          )}
+        </select>
+
+        {userTemplates.length > 0 && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Custom templates
+            </label>
+            {userTemplates.map((template) => (
+              <div
+                key={template.id}
+                className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2"
+              >
+                <span className="text-sm text-slate-900 dark:text-slate-100">
+                  {template.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!confirm(`Delete template "${template.name}"?`)) return;
+                    await supabase
+                      .from("card_templates")
+                      .delete()
+                      .eq("id", template.id);
+                    setUserTemplates((prev) =>
+                      prev.filter((t) => t.id !== template.id),
+                    );
+                    if (settings.default_template === template.id) {
+                      setSettings({
+                        ...settings,
+                        default_template: "flashcard",
+                      });
+                    }
+                  }}
+                  className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                  title="Delete template"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
       {/* Vacation Mode */}
       <section className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 space-y-4">
         <div className="flex items-center justify-between">
@@ -602,7 +696,6 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

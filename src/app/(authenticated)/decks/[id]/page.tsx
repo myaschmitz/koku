@@ -19,14 +19,17 @@ import {
   Download,
   Upload,
 } from "lucide-react";
-import type { Card, Deck } from "@/lib/types";
+import type { Card, Deck, CardTemplate } from "@/lib/types";
 import { CreateCardModal } from "@/components/create-card-modal";
 import { CardViewModal } from "@/components/card-view-modal";
 import { ExportModal } from "@/components/export-modal";
 import { ImportModal } from "@/components/import-modal";
+import { NewCardButton } from "@/components/new-card-button";
+import { CreateTemplateModal } from "@/components/create-template-modal";
 import { Tooltip } from "@/components/tooltip";
 import { Markdown } from "@/components/markdown";
 import { splitCardContent, getCardTitle } from "@/lib/card-utils";
+import { getTemplateContent } from "@/lib/card-templates";
 
 const STATE_LABELS = ["New", "Learning", "Review", "Relearning"];
 const STATE_COLORS = [
@@ -177,11 +180,24 @@ export default function DeckDetailPage() {
   const [viewCardId, setViewCardId] = useState<string | null>(null);
   const [showExport, setShowExport] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [userTemplates, setUserTemplates] = useState<CardTemplate[]>([]);
+  const [defaultTemplateId, setDefaultTemplateId] = useState("flashcard");
+  const [templateContent, setTemplateContent] = useState("");
   const columnDetailRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     columnDetailRef.current?.scrollTo(0, 0);
   }, [selectedCardId]);
+
+  const handleTemplateSelect = useCallback(
+    (templateId: string) => {
+      const content = getTemplateContent(templateId, userTemplates);
+      setTemplateContent(content);
+      setShowCreateModal(true);
+    },
+    [userTemplates],
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -196,12 +212,12 @@ export default function DeckDetailPage() {
         !(e.target as HTMLElement)?.isContentEditable
       ) {
         e.preventDefault();
-        setShowCreateModal(true);
+        handleTemplateSelect(defaultTemplateId);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showCreateModal]);
+  }, [showCreateModal, defaultTemplateId, handleTemplateSelect]);
 
   const refreshCards = useCallback(async () => {
     const { data: cardsData } = await supabase
@@ -231,7 +247,27 @@ export default function DeckDetailPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (user) setUserId(user.id);
+      if (user) {
+        setUserId(user.id);
+
+        // Fetch user templates
+        const { data: templates } = await supabase
+          .from("card_templates")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: true });
+        if (templates) setUserTemplates(templates as CardTemplate[]);
+
+        // Fetch default template setting
+        const { data: settingsData } = await supabase
+          .from("user_settings")
+          .select("default_template")
+          .eq("user_id", user.id)
+          .single();
+        if (settingsData?.default_template) {
+          setDefaultTemplateId(settingsData.default_template);
+        }
+      }
 
       const { data: deckData } = await supabase
         .from("decks")
@@ -357,13 +393,12 @@ export default function DeckDetailPage() {
                 <Download className="h-4 w-4" />
               </button>
             </Tooltip>
-            <button
-              type="button"
-              onClick={() => setShowCreateModal(true)}
-              className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              + New Card
-            </button>
+            <NewCardButton
+              defaultTemplateId={defaultTemplateId}
+              userTemplates={userTemplates}
+              onSelect={handleTemplateSelect}
+              onNewTemplate={() => setShowTemplateModal(true)}
+            />
           </div>
         </div>
 
@@ -416,13 +451,12 @@ export default function DeckDetailPage() {
                 <Download className="h-4 w-4" />
               </button>
             </Tooltip>
-            <button
-              type="button"
-              onClick={() => setShowCreateModal(true)}
-              className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              + New Card
-            </button>
+            <NewCardButton
+              defaultTemplateId={defaultTemplateId}
+              userTemplates={userTemplates}
+              onSelect={handleTemplateSelect}
+              onNewTemplate={() => setShowTemplateModal(true)}
+            />
           </div>
         </div>
       </div>
@@ -434,7 +468,7 @@ export default function DeckDetailPage() {
           </p>
           <button
             type="button"
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => handleTemplateSelect(defaultTemplateId)}
             className="rounded-lg bg-blue-500/80 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 transition-colors"
           >
             + New Card
@@ -447,7 +481,7 @@ export default function DeckDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <button
                 type="button"
-                onClick={() => setShowCreateModal(true)}
+                onClick={() => handleTemplateSelect(defaultTemplateId)}
                 className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 p-4 min-h-30 text-slate-400 dark:text-slate-500 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
               >
                 <Plus className="h-8 w-8 mb-2" />
@@ -494,7 +528,7 @@ export default function DeckDetailPage() {
               <div className="w-1/3 min-w-0 overflow-y-auto space-y-2 pr-2">
                 <button
                   type="button"
-                  onClick={() => setShowCreateModal(true)}
+                  onClick={() => handleTemplateSelect(defaultTemplateId)}
                   className="w-full flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 p-3 text-slate-400 dark:text-slate-500 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-500 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
                 >
                   <Plus className="h-4 w-4" />
@@ -633,13 +667,24 @@ export default function DeckDetailPage() {
       )}
 
       {userId && (
-        <CreateCardModal
-          deckId={deckId}
-          userId={userId}
-          open={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onCreated={refreshCards}
-        />
+        <>
+          <CreateCardModal
+            deckId={deckId}
+            userId={userId}
+            open={showCreateModal}
+            onClose={() => setShowCreateModal(false)}
+            onCreated={refreshCards}
+            initialContent={templateContent}
+          />
+          <CreateTemplateModal
+            userId={userId}
+            open={showTemplateModal}
+            onClose={() => setShowTemplateModal(false)}
+            onCreated={(template) =>
+              setUserTemplates((prev) => [...prev, template])
+            }
+          />
+        </>
       )}
 
       <CardViewModal

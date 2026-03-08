@@ -11,6 +11,7 @@ interface CreateCardModalProps {
   open: boolean;
   onClose: () => void;
   onCreated: () => void;
+  initialContent?: string;
 }
 
 export function CreateCardModal({
@@ -19,6 +20,7 @@ export function CreateCardModal({
   open,
   onClose,
   onCreated,
+  initialContent = "",
 }: CreateCardModalProps) {
   const supabase = createClient();
   const [formKey, setFormKey] = useState(0);
@@ -140,6 +142,7 @@ export function CreateCardModal({
           )}
           <CardForm
             key={formKey}
+            initial={initialContent ? { content: initialContent } : undefined}
             onSubmit={handleSubmit}
             submitLabel="Create Card"
             userId={userId}
