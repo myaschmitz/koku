@@ -287,9 +287,9 @@ function insertText(
   text: string,
   onChange: (v: string) => void,
 ) {
-  const { selectionStart, value } = textarea;
+  const { selectionStart, selectionEnd, value } = textarea;
   const newValue =
-    value.slice(0, selectionStart) + text + value.slice(selectionStart);
+    value.slice(0, selectionStart) + text + value.slice(selectionEnd);
   onChange(newValue);
   requestAnimationFrame(() => {
     textarea.focus();
