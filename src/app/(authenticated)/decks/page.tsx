@@ -8,6 +8,7 @@ import { Pencil, Trash2, Upload, Download } from "lucide-react";
 import type { DeckWithCounts } from "@/lib/types";
 import { ImportModal } from "@/components/import-modal";
 import { ExportAllModal } from "@/components/export-all-modal";
+import { Tooltip } from "@/components/tooltip";
 
 export default function DecksPage() {
   const router = useRouter();
@@ -127,9 +128,9 @@ export default function DecksPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Your Decks</h1>
-        <div className="flex gap-3">
+      <h1 className="text-2xl font-bold">Your Decks</h1>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
           {totalDue > 0 && (
             <Link
               href="/study"
@@ -138,22 +139,28 @@ export default function DecksPage() {
               Study All Due ({totalDue})
             </Link>
           )}
-          <button
-            type="button"
-            onClick={() => setShowExportAll(true)}
-            className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
-          >
-            <Download className="h-4 w-4" />
-            Export
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowImport(true)}
-            className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
-          >
-            <Upload className="h-4 w-4" />
-            Import
-          </button>
+        </div>
+        <div className="flex flex-wrap justify-end gap-2 sm:gap-3 items-center">
+          <Tooltip label="Import deck">
+            <button
+              type="button"
+              onClick={() => setShowImport(true)}
+              aria-label="Import deck"
+              className="rounded-lg border border-slate-300 dark:border-slate-600 p-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <Upload className="h-4 w-4" />
+            </button>
+          </Tooltip>
+          <Tooltip label="Export all decks">
+            <button
+              type="button"
+              onClick={() => setShowExportAll(true)}
+              aria-label="Export all decks"
+              className="rounded-lg border border-slate-300 dark:border-slate-600 p-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <Download className="h-4 w-4" />
+            </button>
+          </Tooltip>
           <button
             type="button"
             onClick={() => setShowCreate(true)}
@@ -268,14 +275,20 @@ export default function DecksPage() {
                   </div>
                   <div className="flex gap-1">
                     <button
-                      onClick={(e) => { e.preventDefault(); startEdit(deck); }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        startEdit(deck);
+                      }}
                       className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                       title="Edit"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={(e) => { e.preventDefault(); handleDelete(deck.id); }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleDelete(deck.id);
+                      }}
                       className="p-1 text-slate-400 hover:text-red-500"
                       title="Delete"
                     >
@@ -295,7 +308,10 @@ export default function DecksPage() {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={(e) => { e.preventDefault(); router.push(`/study/${deck.id}`); }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        router.push(`/study/${deck.id}`);
+                      }}
                       className="rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-3 py-1.5 text-sm text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
                     >
                       Study ({deck.due_count})

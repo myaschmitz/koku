@@ -349,62 +349,31 @@ export default function DeckDetailPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <Link
-              href="/decks"
-              className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
-            >
-              <ArrowLeft className="inline h-4 w-4" /> Back to decks
-            </Link>
-            <h1 className="text-2xl font-bold mt-1">{deck.name}</h1>
-            {deck.description && (
-              <p className="text-slate-500 dark:text-slate-400 mt-1">
-                {deck.description}
-              </p>
-            )}
-          </div>
-          <div className="hidden sm:flex gap-3 items-center">
-            {dueCount > 0 && (
-              <Link
-                href={`/study/${deckId}`}
-                className="rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
-              >
-                Study ({dueCount})
-              </Link>
-            )}
-            <Tooltip label="Import cards">
-              <button
-                type="button"
-                onClick={() => setShowImport(true)}
-                aria-label="Import cards"
-                className="rounded-lg border border-slate-300 dark:border-slate-600 p-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <Upload className="h-4 w-4" />
-              </button>
-            </Tooltip>
-            <Tooltip label="Export deck">
-              <button
-                type="button"
-                onClick={() => setShowExport(true)}
-                aria-label="Export deck"
-                className="rounded-lg border border-slate-300 dark:border-slate-600 p-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <Download className="h-4 w-4" />
-              </button>
-            </Tooltip>
-            <NewCardButton
-              defaultTemplateId={defaultTemplateId}
-              userTemplates={userTemplates}
-              onSelect={handleTemplateSelect}
-              onNewTemplate={() => setShowTemplateModal(true)}
-            />
-          </div>
+        <div>
+          <Link
+            href="/decks"
+            className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+          >
+            <ArrowLeft className="inline h-4 w-4" /> Back to decks
+          </Link>
+          <h1 className="text-2xl font-bold mt-1">{deck.name}</h1>
+          {deck.description && (
+            <p className="text-slate-500 dark:text-slate-400 mt-1">
+              {deck.description}
+            </p>
+          )}
         </div>
 
-        <div className="flex items-center justify-between">
-          {/* View mode toggle */}
-          <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {dueCount > 0 && (
+            <Link
+              href={`/study/${deckId}`}
+              className="rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
+            >
+              Study ({dueCount})
+            </Link>
+          )}
+          <div className="flex shrink-0 rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden">
             {viewButtons.map(({ mode, icon: Icon, label }) => (
               <button
                 key={mode}
@@ -421,16 +390,8 @@ export default function DeckDetailPage() {
               </button>
             ))}
           </div>
-
-          <div className="flex sm:hidden gap-3 items-center">
-            {dueCount > 0 && (
-              <Link
-                href={`/study/${deckId}`}
-                className="rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
-              >
-                Study ({dueCount})
-              </Link>
-            )}
+          <div className="flex-1" />
+          <div className="flex items-center gap-2 sm:gap-3">
             <Tooltip label="Import cards">
               <button
                 type="button"
@@ -523,9 +484,9 @@ export default function DeckDetailPage() {
 
           {/* Column View */}
           {viewMode === "column" && (
-            <div className="flex gap-4 h-[calc(100vh-200px)]">
+            <div className="flex flex-col sm:flex-row gap-4 sm:h-[calc(100vh-200px)]">
               {/* Left panel - card list */}
-              <div className="w-1/3 min-w-0 overflow-y-auto space-y-2 pr-2">
+              <div className="sm:w-1/3 min-w-0 overflow-y-auto space-y-2 sm:pr-2 max-h-64 sm:max-h-none">
                 <button
                   type="button"
                   onClick={() => handleTemplateSelect(defaultTemplateId)}
@@ -565,7 +526,7 @@ export default function DeckDetailPage() {
               {/* Right panel - selected card detail */}
               <div
                 ref={columnDetailRef}
-                className="w-2/3 min-w-0 overflow-y-auto"
+                className="sm:w-2/3 min-w-0 overflow-y-auto"
               >
                 {selectedCard ? (
                   <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
