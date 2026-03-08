@@ -16,10 +16,15 @@ import {
   Plus,
   Copy,
   Check,
+  Download,
+  Upload,
 } from "lucide-react";
 import type { Card, Deck } from "@/lib/types";
 import { CreateCardModal } from "@/components/create-card-modal";
 import { CardViewModal } from "@/components/card-view-modal";
+import { ExportModal } from "@/components/export-modal";
+import { ImportModal } from "@/components/import-modal";
+import { Tooltip } from "@/components/tooltip";
 import { Markdown } from "@/components/markdown";
 import { splitCardContent, getCardTitle } from "@/lib/card-utils";
 
@@ -170,6 +175,8 @@ export default function DeckDetailPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [viewCardId, setViewCardId] = useState<string | null>(null);
+  const [showExport, setShowExport] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const columnDetailRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -330,6 +337,26 @@ export default function DeckDetailPage() {
                 Study ({dueCount})
               </Link>
             )}
+            <Tooltip label="Import cards">
+              <button
+                type="button"
+                onClick={() => setShowImport(true)}
+                aria-label="Import cards"
+                className="rounded-lg border border-slate-300 dark:border-slate-600 p-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Upload className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label="Export deck">
+              <button
+                type="button"
+                onClick={() => setShowExport(true)}
+                aria-label="Export deck"
+                className="rounded-lg border border-slate-300 dark:border-slate-600 p-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Download className="h-4 w-4" />
+              </button>
+            </Tooltip>
             <button
               type="button"
               onClick={() => setShowCreateModal(true)}
@@ -369,6 +396,26 @@ export default function DeckDetailPage() {
                 Study ({dueCount})
               </Link>
             )}
+            <Tooltip label="Import cards">
+              <button
+                type="button"
+                onClick={() => setShowImport(true)}
+                aria-label="Import cards"
+                className="rounded-lg border border-slate-300 dark:border-slate-600 p-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Upload className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label="Export deck">
+              <button
+                type="button"
+                onClick={() => setShowExport(true)}
+                aria-label="Export deck"
+                className="rounded-lg border border-slate-300 dark:border-slate-600 p-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Download className="h-4 w-4" />
+              </button>
+            </Tooltip>
             <button
               type="button"
               onClick={() => setShowCreateModal(true)}
@@ -604,6 +651,20 @@ export default function DeckDetailPage() {
           setViewCardId(null);
           handleDeleteCard(id);
         }}
+      />
+
+      <ExportModal
+        open={showExport}
+        onClose={() => setShowExport(false)}
+        deck={deck}
+      />
+
+      <ImportModal
+        open={showImport}
+        onClose={() => setShowImport(false)}
+        onImported={refreshCards}
+        targetDeckId={deckId}
+        targetDeckName={deck.name}
       />
     </div>
   );

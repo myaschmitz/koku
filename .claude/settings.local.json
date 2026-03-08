@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la /c/Users/Mya/Documents/repos/koku/src/app/\\\\\\(authenticated\\\\\\))",
+      "Bash(npx next build)"
+    ]
+  }
+}
