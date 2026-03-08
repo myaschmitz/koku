@@ -1,9 +1,10 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { Sun, Moon, Monitor, Palmtree } from "lucide-react";
+import { toast } from "sonner";
 import type { UserSettings } from "@/lib/types";
 
 const AGAIN_OPTIONS = [
@@ -29,9 +30,9 @@ export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [email, setEmail] = useState("");
+  const lastSavedValues = useRef<string | null>(null);
+  const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -62,34 +63,75 @@ export default function SettingsPage() {
         }
       }
       setLoading(false);
+      // Snapshot initial values so auto-save only fires on user changes
+      if (data) {
+        lastSavedValues.current = JSON.stringify([
+          data.again_interval_hours,
+          data.hard_interval_hours,
+          data.max_new_cards_per_day,
+        ]);
+      }
     };
 
     fetchSettings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSave = async () => {
-    if (!settings) return;
-    setSaving(true);
-
-    await supabase
+  const saveSettings = async (
+    updatedSettings: UserSettings,
+    currentTheme: string,
+  ) => {
+    const { error } = await supabase
       .from("user_settings")
       .update({
-        again_interval_hours: settings.again_interval_hours,
-        hard_interval_hours: settings.hard_interval_hours,
-        max_new_cards_per_day: settings.max_new_cards_per_day,
-        theme: theme ?? "system",
+        again_interval_hours: updatedSettings.again_interval_hours,
+        hard_interval_hours: updatedSettings.hard_interval_hours,
+        max_new_cards_per_day: updatedSettings.max_new_cards_per_day,
+        theme: currentTheme,
         updated_at: new Date().toISOString(),
       })
-      .eq("user_id", settings.user_id);
+      .eq("user_id", updatedSettings.user_id);
 
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    if (error) {
+      toast.error("Failed to save settings");
+    } else {
+      toast.success("Settings saved");
+    }
   };
+
+  // Auto-save when settings change (debounced), only if values differ from last save
+  useEffect(() => {
+    if (!settings) return;
+
+    const currentValues = JSON.stringify([
+      settings.again_interval_hours,
+      settings.hard_interval_hours,
+      settings.max_new_cards_per_day,
+    ]);
+
+    if (currentValues === lastSavedValues.current) return;
+
+    if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    saveTimeout.current = setTimeout(() => {
+      lastSavedValues.current = currentValues;
+      saveSettings(settings, theme ?? "system");
+    }, 500);
+
+    return () => {
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    settings?.again_interval_hours,
+    settings?.hard_interval_hours,
+    settings?.max_new_cards_per_day,
+  ]);
 
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
+    if (settings) {
+      saveSettings(settings, newTheme);
+    }
   };
 
   const handleVacationToggle = async () => {
@@ -460,21 +502,6 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Save Button */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="rounded-lg bg-blue-500 dark:bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors disabled:opacity-50"
-        >
-          {saving ? "Saving..." : "Save Changes"}
-        </button>
-        {saved && (
-          <span className="text-sm text-green-600 dark:text-green-400">
-            Settings saved!
-          </span>
-        )}
-      </div>
     </div>
   );
 }
