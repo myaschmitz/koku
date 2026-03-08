@@ -34,7 +34,7 @@ export default async function Home() {
             <ThemeToggle />
             <Link
               href="/login"
-              className="rounded-lg bg-blue-500 dark:bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
+              className="rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
             >
               Log in
             </Link>
@@ -55,7 +55,7 @@ export default async function Home() {
         </p>
         <Link
           href="/login"
-          className="mt-8 inline-block rounded-lg bg-blue-500 dark:bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
+          className="mt-8 inline-block rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-6 py-3 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
         >
           Get started — it&apos;s free
         </Link>

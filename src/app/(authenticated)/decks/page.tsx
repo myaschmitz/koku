@@ -129,7 +129,7 @@ export default function DecksPage() {
           {totalDue > 0 && (
             <Link
               href="/study"
-              className="rounded-lg bg-blue-500 dark:bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
+              className="rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
             >
               Study All Due ({totalDue})
             </Link>
@@ -164,7 +164,7 @@ export default function DecksPage() {
           <div className="flex gap-2">
             <button
               type="submit"
-              className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-colors"
+              className="rounded-lg bg-blue-500/80 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 transition-colors"
             >
               Create
             </button>
@@ -186,7 +186,7 @@ export default function DecksPage() {
           </p>
           <button
             onClick={() => setShowCreate(true)}
-            className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-colors"
+            className="rounded-lg bg-blue-500/80 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 transition-colors"
           >
             + New Deck
           </button>
@@ -215,7 +215,7 @@ export default function DecksPage() {
                 <div className="flex gap-2">
                   <button
                     type="submit"
-                    className="rounded-lg bg-blue-500 px-3 py-1.5 text-sm text-white hover:bg-blue-600 transition-colors"
+                    className="rounded-lg bg-blue-500/80 px-3 py-1.5 text-sm text-white hover:bg-blue-600/80 transition-colors"
                   >
                     Save
                   </button>
@@ -275,7 +275,7 @@ export default function DecksPage() {
                     <button
                       type="button"
                       onClick={(e) => { e.preventDefault(); router.push(`/study/${deck.id}`); }}
-                      className="rounded-lg bg-blue-500 dark:bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
+                      className="rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-3 py-1.5 text-sm text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
                     >
                       Study ({deck.due_count})
                     </button>

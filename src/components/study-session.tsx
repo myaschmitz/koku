@@ -291,7 +291,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
         </div>
         <Link
           href="/decks"
-          className="inline-block rounded-lg bg-blue-500 dark:bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
+          className="inline-block rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
         >
           Back to Decks
         </Link>
@@ -321,7 +321,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       shortcut: "1",
       interval: preview[Rating.Again],
       color:
-        "bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500",
+        "bg-red-500/80 hover:bg-red-600/80 dark:bg-red-500/60 dark:hover:bg-red-400/60",
     },
     {
       rating: Rating.Hard,
@@ -329,7 +329,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       shortcut: "2",
       interval: preview[Rating.Hard],
       color:
-        "bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500",
+        "bg-orange-500/80 hover:bg-orange-600/80 dark:bg-orange-500/60 dark:hover:bg-orange-400/60",
     },
     {
       rating: Rating.Good,
@@ -337,7 +337,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       shortcut: "3",
       interval: preview[Rating.Good],
       color:
-        "bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-500",
+        "bg-green-500/80 hover:bg-green-600/80 dark:bg-green-500/60 dark:hover:bg-green-400/60",
     },
     {
       rating: Rating.Easy,
@@ -345,7 +345,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       shortcut: "4",
       interval: preview[Rating.Easy],
       color:
-        "bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500",
+        "bg-blue-500/80 hover:bg-blue-600/80 dark:bg-blue-500/60 dark:hover:bg-blue-400/60",
     },
   ];
 
@@ -381,7 +381,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       {/* Progress bar */}
       <div className="h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
         <div
-          className="h-full bg-blue-500 transition-all duration-300"
+          className="h-full bg-blue-500/80 transition-all duration-300"
           style={{
             width: `${activeCount > 0 ? (activeIndex / activeCount) * 100 : 0}%`,
           }}
