@@ -7,6 +7,20 @@ import { Sun, Moon, Monitor, Palmtree, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { UserSettings, CardTemplate } from "@/lib/types";
 import { BUILTIN_TEMPLATES } from "@/lib/card-templates";
+import { applyAccentColor } from "@/components/accent-settings";
+
+const PRESET_COLORS = [
+  { label: "Blue", value: "#3b82f6" },
+  { label: "Purple", value: "#8b5cf6" },
+  { label: "Pink", value: "#ec4899" },
+  { label: "Rose", value: "#f43f5e" },
+  { label: "Orange", value: "#f97316" },
+  { label: "Amber", value: "#f59e0b" },
+  { label: "Emerald", value: "#10b981" },
+  { label: "Teal", value: "#14b8a6" },
+  { label: "Cyan", value: "#06b6d4" },
+  { label: "Indigo", value: "#6366f1" },
+];
 
 const FONT_FAMILIES: Record<string, string> = {
   sans: "var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif",
@@ -96,6 +110,7 @@ export default function SettingsPage() {
           data.font_size,
           data.font_family,
           data.default_template,
+          data.accent_color,
         ]);
       }
     };
@@ -117,6 +132,7 @@ export default function SettingsPage() {
         font_size: updatedSettings.font_size,
         font_family: updatedSettings.font_family,
         default_template: updatedSettings.default_template,
+        accent_color: updatedSettings.accent_color,
         theme: currentTheme,
         updated_at: new Date().toISOString(),
       })
@@ -140,6 +156,7 @@ export default function SettingsPage() {
       settings.font_size,
       settings.font_family,
       settings.default_template,
+      settings.accent_color,
     ]);
 
     if (currentValues === lastSavedValues.current) return;
@@ -161,6 +178,7 @@ export default function SettingsPage() {
     settings?.font_size,
     settings?.font_family,
     settings?.default_template,
+    settings?.accent_color,
   ]);
 
   const handleThemeChange = (newTheme: string) => {
@@ -190,6 +208,12 @@ export default function SettingsPage() {
     if (!settings) return;
     setSettings({ ...settings, font_family: family });
     applyFontSettings(settings.font_size, family);
+  };
+
+  const handleAccentColorChange = (color: string) => {
+    if (!settings) return;
+    setSettings({ ...settings, accent_color: color });
+    applyAccentColor(color);
   };
 
   const handleVacationToggle = async () => {
@@ -312,7 +336,7 @@ export default function SettingsPage() {
                   again_interval_hours: Number(e.target.value),
                 })
               }
-              className="w-full sm:w-48 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full sm:w-48 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
             >
               {AGAIN_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -334,7 +358,7 @@ export default function SettingsPage() {
                   hard_interval_hours: Number(e.target.value),
                 })
               }
-              className="w-full sm:w-48 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full sm:w-48 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
             >
               {HARD_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -362,7 +386,7 @@ export default function SettingsPage() {
                   ),
                 })
               }
-              className="w-full sm:w-48 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full sm:w-48 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
             />
           </div>
         </div>
@@ -416,7 +440,7 @@ export default function SettingsPage() {
               step={1}
               value={settings.font_size ?? 16}
               onChange={(e) => handleFontSizeChange(Number(e.target.value))}
-              className="flex-1 accent-blue-500"
+              className="flex-1 accent-accent-500"
               aria-label="Font size"
             />
             <span className="text-xs text-slate-500 w-8">24</span>
@@ -441,7 +465,7 @@ export default function SettingsPage() {
                 onClick={() => handleFontFamilyChange(opt.value)}
                 className={`flex flex-col items-center gap-1 px-4 py-3 rounded-lg border transition-colors ${
                   (settings.font_family ?? "sans") === opt.value
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                    ? "border-accent-500 bg-accent-50 dark:bg-accent-900/20 text-accent-700 dark:text-accent-300"
                     : "border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-500"
                 }`}
               >
@@ -460,6 +484,65 @@ export default function SettingsPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            Accent Color
+          </label>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {PRESET_COLORS.map((preset) => (
+              <button
+                key={preset.value}
+                type="button"
+                onClick={() => handleAccentColorChange(preset.value)}
+                className={`h-8 w-8 rounded-full border-2 transition-all ${
+                  (settings.accent_color ?? "#3b82f6") === preset.value
+                    ? "border-slate-900 dark:border-white scale-110"
+                    : "border-transparent hover:scale-110"
+                }`}
+                style={{ backgroundColor: preset.value }}
+                title={preset.label}
+              />
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={settings.accent_color ?? "#3b82f6"}
+              onChange={(e) => handleAccentColorChange(e.target.value)}
+              className="h-8 w-8 rounded cursor-pointer border border-slate-300 dark:border-slate-600 bg-transparent p-0"
+              title="Pick custom color"
+            />
+            <input
+              type="text"
+              value={settings.accent_color ?? "#3b82f6"}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+                  handleAccentColorChange(val);
+                } else {
+                  setSettings({ ...settings, accent_color: val });
+                }
+              }}
+              onBlur={(e) => {
+                const val = e.target.value;
+                if (!/^#[0-9a-fA-F]{6}$/.test(val)) {
+                  handleAccentColorChange(settings.accent_color ?? "#3b82f6");
+                }
+              }}
+              placeholder="#3b82f6"
+              maxLength={7}
+              className="w-28 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-1.5 text-sm font-mono focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+            />
+            <div
+              className="h-8 flex-1 rounded-lg"
+              style={{ backgroundColor: settings.accent_color ?? "#3b82f6" }}
+            />
+          </div>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+            Choose a color for buttons, links, and highlights throughout the app.
+          </p>
         </div>
       </section>
 
@@ -482,7 +565,7 @@ export default function SettingsPage() {
           onChange={(e) =>
             setSettings({ ...settings, default_template: e.target.value })
           }
-          className="w-full sm:w-64 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full sm:w-64 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
         >
           {BUILTIN_TEMPLATES.map((template) => (
             <option key={template.id} value={template.id}>

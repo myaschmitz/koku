@@ -146,7 +146,7 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
         onDrop={handleDrop}
         className={`mt-2 rounded-lg border-2 border-dashed p-3 transition-colors ${
           dragOver
-            ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
+            ? "border-accent-500 bg-accent-50 dark:bg-accent-900/30"
             : "border-slate-300 dark:border-slate-600"
         }`}
       >
@@ -185,7 +185,7 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="text-blue-500 hover:text-blue-600 font-medium"
+              className="text-accent-500 hover:text-accent-600 font-medium"
             >
               browse
             </button>

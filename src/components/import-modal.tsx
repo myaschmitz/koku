@@ -209,7 +209,7 @@ export function ImportModal({
                 onClick={() => fileInputRef.current?.click()}
                 className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
                   dragOver
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                    ? "border-accent-500 bg-accent-50 dark:bg-accent-900/20"
                     : "border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500"
                 }`}
               >
@@ -362,7 +362,7 @@ export function ImportModal({
             <button
               onClick={handleImport}
               disabled={importing}
-              className="rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 disabled:opacity-50 transition-colors"
+              className="rounded-lg bg-accent-500/80 dark:bg-accent-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600/80 dark:hover:bg-accent-400/60 disabled:opacity-50 transition-colors"
             >
               {importing
                 ? "Importing..."

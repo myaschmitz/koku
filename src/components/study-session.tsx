@@ -282,7 +282,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
               <p className="text-slate-500 dark:text-slate-400">Good</p>
             </div>
             <div>
-              <p className="text-blue-500 font-semibold text-lg">
+              <p className="text-accent-500 font-semibold text-lg">
                 {stats.easy}
               </p>
               <p className="text-slate-500 dark:text-slate-400">Easy</p>
@@ -291,7 +291,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
         </div>
         <Link
           href="/decks"
-          className="inline-block rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
+          className="inline-block rounded-lg bg-accent-500/80 dark:bg-accent-500/60 px-6 py-2.5 text-sm font-medium text-white hover:bg-accent-600/80 dark:hover:bg-accent-400/60 transition-colors"
         >
           Back to Decks
         </Link>
@@ -345,7 +345,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       shortcut: "4",
       interval: preview[Rating.Easy],
       color:
-        "bg-blue-500/80 hover:bg-blue-600/80 dark:bg-blue-500/60 dark:hover:bg-blue-400/60",
+        "bg-accent-500/80 hover:bg-accent-600/80 dark:bg-accent-500/60 dark:hover:bg-accent-400/60",
     },
   ];
 
@@ -381,7 +381,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       {/* Progress bar */}
       <div className="h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
         <div
-          className="h-full bg-blue-500/80 transition-all duration-300"
+          className="h-full bg-accent-500/80 transition-all duration-300"
           style={{
             width: `${activeCount > 0 ? (activeIndex / activeCount) * 100 : 0}%`,
           }}

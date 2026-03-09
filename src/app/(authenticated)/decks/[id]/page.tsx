@@ -33,7 +33,7 @@ import { getTemplateContent } from "@/lib/card-templates";
 
 const STATE_LABELS = ["New", "Learning", "Review", "Relearning"];
 const STATE_COLORS = [
-  "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+  "bg-accent-100 text-accent-700 dark:bg-accent-900 dark:text-accent-300",
   "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
   "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
   "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
@@ -368,7 +368,7 @@ export default function DeckDetailPage() {
           {dueCount > 0 && (
             <Link
               href={`/study/${deckId}`}
-              className="rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
+              className="rounded-lg bg-accent-500/80 dark:bg-accent-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600/80 dark:hover:bg-accent-400/60 transition-colors"
             >
               Study ({dueCount})
             </Link>
@@ -430,7 +430,7 @@ export default function DeckDetailPage() {
           <button
             type="button"
             onClick={() => handleTemplateSelect(defaultTemplateId)}
-            className="rounded-lg bg-blue-500/80 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 transition-colors"
+            className="rounded-lg bg-accent-500/80 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600/80 transition-colors"
           >
             + New Card
           </button>
@@ -505,7 +505,7 @@ export default function DeckDetailPage() {
                     onClick={() => setSelectedCardId(card.id)}
                     className={`w-full text-left rounded-lg border p-3 transition-colors ${
                       selectedCardId === card.id
-                        ? "border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30"
+                        ? "border-accent-500 dark:border-accent-400 bg-accent-50 dark:bg-accent-900/30"
                         : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     }`}
                   >
@@ -607,7 +607,7 @@ export default function DeckDetailPage() {
                     <button
                       type="button"
                       onClick={() => setViewCardId(card.id)}
-                      className="text-sm text-slate-400 hover:text-blue-500 transition-colors"
+                      className="text-sm text-slate-400 hover:text-accent-500 transition-colors"
                     >
                       View card →
                     </button>

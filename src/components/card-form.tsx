@@ -120,10 +120,10 @@ export function CardForm({
       <button
         type="submit"
         disabled={saving || !content.trim()}
-        className="inline-flex items-center gap-2 rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center gap-2 rounded-lg bg-accent-500/80 dark:bg-accent-500/60 px-6 py-2.5 text-sm font-medium text-white hover:bg-accent-600/80 dark:hover:bg-accent-400/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {saving ? "Saving..." : submitLabel}
-        <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded bg-blue-400/30 px-1.5 py-0.5 text-xs font-mono text-blue-100">
+        <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded bg-accent-400/30 px-1.5 py-0.5 text-xs font-mono text-accent-100">
           <span>{typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘" : "Ctrl"}</span>
           <span>↵</span>
         </kbd>

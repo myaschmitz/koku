@@ -46,6 +46,10 @@ export default function StudyAllPage() {
           easy_interval_hours: 192,
           max_new_cards_per_day: 20,
           theme: "system",
+          accent_color: "#3b82f6",
+          font_size: 16,
+          font_family: "sans",
+          default_template: "flashcard",
           vacation_mode: false,
           vacation_started_at: null,
           created_at: "",
@@ -73,14 +77,14 @@ export default function StudyAllPage() {
         <h2 className="text-xl font-semibold mb-2">Vacation Mode Active</h2>
         <p className="text-slate-500 dark:text-slate-400 mb-4">
           Reviews are paused. Turn off vacation mode in{" "}
-          <Link href="/settings" className="text-blue-500 hover:text-blue-600">
+          <Link href="/settings" className="text-accent-500 hover:text-accent-600">
             settings
           </Link>{" "}
           to resume studying.
         </p>
         <Link
           href="/decks"
-          className="text-blue-500 hover:text-blue-600 text-sm"
+          className="text-accent-500 hover:text-accent-600 text-sm"
         >
           <ArrowLeft className="inline h-4 w-4" /> Back to decks
         </Link>
@@ -97,7 +101,7 @@ export default function StudyAllPage() {
         </p>
         <Link
           href="/decks"
-          className="text-blue-500 hover:text-blue-600 text-sm"
+          className="text-accent-500 hover:text-accent-600 text-sm"
         >
           <ArrowLeft className="inline h-4 w-4" /> Back to decks
         </Link>

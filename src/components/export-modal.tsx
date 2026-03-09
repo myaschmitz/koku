@@ -136,7 +136,7 @@ export function ExportModal({ open, onClose, deck }: ExportModalProps) {
                 key={key}
                 className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
                   format === key
-                    ? "border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                    ? "border-accent-500 dark:border-accent-400 bg-accent-50 dark:bg-accent-900/20"
                     : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
                 }`}
               >
@@ -175,7 +175,7 @@ export function ExportModal({ open, onClose, deck }: ExportModalProps) {
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 disabled:opacity-50 transition-colors flex items-center gap-2"
+            className="rounded-lg bg-accent-500/80 dark:bg-accent-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600/80 dark:hover:bg-accent-400/60 disabled:opacity-50 transition-colors flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
             {exporting ? "Exporting..." : "Export"}

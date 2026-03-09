@@ -50,6 +50,7 @@ export interface UserSettings {
   font_size: number; // px, default 16
   font_family: string; // "sans" | "serif" | "mono"
   default_template: string; // "flashcard", "no-template", or a UUID
+  accent_color: string; // hex color, e.g. "#3b82f6"
   created_at: string;
   updated_at: string;
 }

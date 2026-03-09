@@ -20,7 +20,7 @@ export function linkifyText(text: string): React.ReactNode[] {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-500 dark:text-blue-400 underline break-all"
+        className="text-accent-500 dark:text-accent-400 underline break-all"
       >
         {url}
       </a>

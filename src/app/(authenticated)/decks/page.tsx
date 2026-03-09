@@ -134,7 +134,7 @@ export default function DecksPage() {
           {totalDue > 0 && (
             <Link
               href="/study"
-              className="rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
+              className="rounded-lg bg-accent-500/80 dark:bg-accent-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600/80 dark:hover:bg-accent-400/60 transition-colors"
             >
               Study All Due ({totalDue})
             </Link>
@@ -181,18 +181,18 @@ export default function DecksPage() {
             placeholder="Deck name"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
           />
           <input
             placeholder="Description (optional)"
             value={newDesc}
             onChange={(e) => setNewDesc(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
           />
           <div className="flex gap-2">
             <button
               type="submit"
-              className="rounded-lg bg-blue-500/80 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 transition-colors"
+              className="rounded-lg bg-accent-500/80 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600/80 transition-colors"
             >
               Create
             </button>
@@ -214,7 +214,7 @@ export default function DecksPage() {
           </p>
           <button
             onClick={() => setShowCreate(true)}
-            className="rounded-lg bg-blue-500/80 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 transition-colors"
+            className="rounded-lg bg-accent-500/80 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600/80 transition-colors"
           >
             + New Deck
           </button>
@@ -226,24 +226,24 @@ export default function DecksPage() {
               <form
                 key={deck.id}
                 onSubmit={handleEdit}
-                className="rounded-lg border border-blue-500 bg-white dark:bg-slate-800 p-4 space-y-3"
+                className="rounded-lg border border-accent-500 bg-white dark:bg-slate-800 p-4 space-y-3"
               >
                 <input
                   autoFocus
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                 />
                 <input
                   value={editDesc}
                   onChange={(e) => setEditDesc(e.target.value)}
                   placeholder="Description (optional)"
-                  className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                 />
                 <div className="flex gap-2">
                   <button
                     type="submit"
-                    className="rounded-lg bg-blue-500/80 px-3 py-1.5 text-sm text-white hover:bg-blue-600/80 transition-colors"
+                    className="rounded-lg bg-accent-500/80 px-3 py-1.5 text-sm text-white hover:bg-accent-600/80 transition-colors"
                   >
                     Save
                   </button>
@@ -299,7 +299,7 @@ export default function DecksPage() {
                 <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
                   <span>{deck.card_count} cards</span>
                   {deck.due_count > 0 && (
-                    <span className="rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 text-xs font-medium">
+                    <span className="rounded-full bg-accent-100 dark:bg-accent-900 text-accent-700 dark:text-accent-300 px-2 py-0.5 text-xs font-medium">
                       {deck.due_count} due
                     </span>
                   )}
@@ -312,7 +312,7 @@ export default function DecksPage() {
                         e.preventDefault();
                         router.push(`/study/${deck.id}`);
                       }}
-                      className="rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-3 py-1.5 text-sm text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
+                      className="rounded-lg bg-accent-500/80 dark:bg-accent-500/60 px-3 py-1.5 text-sm text-white hover:bg-accent-600/80 dark:hover:bg-accent-400/60 transition-colors"
                     >
                       Study ({deck.due_count})
                     </button>

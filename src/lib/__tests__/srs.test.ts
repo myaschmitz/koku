@@ -39,6 +39,8 @@ function makeSettings(overrides: Partial<UserSettings> = {}): UserSettings {
     vacation_started_at: null,
     font_size: 16,
     font_family: "sans",
+    default_template: "flashcard",
+    accent_color: "#3b82f6",
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...overrides,

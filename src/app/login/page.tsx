@@ -38,7 +38,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900 px-4">
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
           <Link href="/" className="inline-block">
@@ -89,7 +89,7 @@ export default function LoginPage() {
             <div className="w-full border-t border-slate-300 dark:border-slate-600" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-slate-50 dark:bg-slate-900 px-2 text-slate-500 dark:text-slate-400">
+            <span className="bg-slate-100 dark:bg-slate-900 px-2 text-slate-500 dark:text-slate-400">
               or
             </span>
           </div>
@@ -101,12 +101,12 @@ export default function LoginPage() {
             placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
           />
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-4 py-3 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors disabled:opacity-50"
+            className="w-full rounded-lg bg-accent-500/80 dark:bg-accent-500/60 px-4 py-3 text-sm font-medium text-white hover:bg-accent-600/80 dark:hover:bg-accent-400/60 transition-colors disabled:opacity-50"
           >
             {loading ? "Sending..." : "Send magic link"}
           </button>

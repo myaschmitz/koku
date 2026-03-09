@@ -20,7 +20,7 @@ export function ImageGrid({ images }: ImageGridProps) {
             key={url}
             type="button"
             onClick={() => setLightboxUrl(url)}
-            className="focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
+            className="focus:outline-none focus:ring-2 focus:ring-accent-500 rounded-md"
           >
             <img
               src={url}

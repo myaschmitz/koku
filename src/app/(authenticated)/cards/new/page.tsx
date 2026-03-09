@@ -79,7 +79,7 @@ function NewCardContent() {
         </p>
         <Link
           href="/decks"
-          className="text-blue-500 hover:text-blue-600 text-sm mt-2 inline-block"
+          className="text-accent-500 hover:text-accent-600 text-sm mt-2 inline-block"
         >
           Go to decks
         </Link>

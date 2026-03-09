@@ -16,7 +16,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-900">
       {/* Nav */}
       <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -34,7 +34,7 @@ export default async function Home() {
             <ThemeToggle />
             <Link
               href="/login"
-              className="rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
+              className="rounded-lg bg-accent-500/80 dark:bg-accent-500/60 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600/80 dark:hover:bg-accent-400/60 transition-colors"
             >
               Log in
             </Link>
@@ -55,7 +55,7 @@ export default async function Home() {
         </p>
         <Link
           href="/login"
-          className="mt-8 inline-block rounded-lg bg-blue-500/80 dark:bg-blue-500/60 px-6 py-3 text-sm font-medium text-white hover:bg-blue-600/80 dark:hover:bg-blue-400/60 transition-colors"
+          className="mt-8 inline-block rounded-lg bg-accent-500/80 dark:bg-accent-500/60 px-6 py-3 text-sm font-medium text-white hover:bg-accent-600/80 dark:hover:bg-accent-400/60 transition-colors"
         >
           Get started — it&apos;s free
         </Link>
@@ -65,7 +65,7 @@ export default async function Home() {
       <section className="max-w-4xl mx-auto px-4 pb-24">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
-            <BookOpen className="h-5 w-5 text-blue-500 mb-3" />
+            <BookOpen className="h-5 w-5 text-accent-500 mb-3" />
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               Spaced repetition
             </h3>
@@ -75,7 +75,7 @@ export default async function Home() {
             </p>
           </div>
           <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
-            <Code className="h-5 w-5 text-blue-500 mb-3" />
+            <Code className="h-5 w-5 text-accent-500 mb-3" />
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               Markdown &amp; code
             </h3>
@@ -85,7 +85,7 @@ export default async function Home() {
             </p>
           </div>
           <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
-            <Moon className="h-5 w-5 text-blue-500 mb-3" />
+            <Moon className="h-5 w-5 text-accent-500 mb-3" />
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               Dark mode
             </h3>
