@@ -21,7 +21,7 @@ export function ThemeToggle() {
   ];
 
   return (
-    <div className="flex rounded-lg bg-slate-200 dark:bg-slate-700 p-0.5">
+    <div className="inline-flex rounded-lg bg-slate-200 dark:bg-slate-700 p-0.5">
       {options.map((opt) => (
         <button
           key={opt.value}
