@@ -43,7 +43,7 @@ export default function EditCardPage() {
       .neq("id", cardId)
       .ilike("content", `%${escaped}%`)
       .limit(1)
-      .single();
+      .maybeSingle();
     if (!data) return null;
     const { getCardTitle } = await import("@/lib/card-utils");
     return { id: data.id, title: getCardTitle(data.content) };
