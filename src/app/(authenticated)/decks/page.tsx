@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Pencil, Trash2, Upload, Download } from "lucide-react";
+import { Pencil, Trash2, Upload, Download, Pin, PinOff } from "lucide-react";
 import type { DeckWithCounts } from "@/lib/types";
 import { ImportModal } from "@/components/import-modal";
 import { ExportAllModal } from "@/components/export-all-modal";
@@ -61,6 +61,12 @@ export default function DecksPage() {
       }),
     );
 
+    // Sort: pinned first, then by created_at descending
+    decksWithCounts.sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
     setDecks(decksWithCounts);
     setTotalDue(decksWithCounts.reduce((sum, d) => sum + d.due_count, 0));
     setLoading(false);
@@ -109,6 +115,14 @@ export default function DecksPage() {
       })
       .eq("id", editingId);
     setEditingId(null);
+    fetchDecks();
+  };
+
+  const togglePin = async (id: string, currentlyPinned: boolean) => {
+    await supabase
+      .from("decks")
+      .update({ pinned: !currentlyPinned })
+      .eq("id", id);
     fetchDecks();
   };
 
@@ -220,9 +234,127 @@ export default function DecksPage() {
           </button>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {decks.map((deck) =>
-            editingId === deck.id ? (
+        <div className="space-y-4">
+          {decks.some((d) => d.pinned) && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {decks.filter((d) => d.pinned).map((deck) =>
+                editingId === deck.id ? (
+                  <form
+                    key={deck.id}
+                    onSubmit={handleEdit}
+                    className="rounded-lg border border-accent-500 bg-white dark:bg-slate-800 p-4 space-y-3"
+                  >
+                    <input
+                      autoFocus
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+                    />
+                    <input
+                      value={editDesc}
+                      onChange={(e) => setEditDesc(e.target.value)}
+                      placeholder="Description (optional)"
+                      className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        className="rounded-lg bg-accent-500/80 px-3 py-1.5 text-sm text-white hover:bg-accent-600/80 transition-colors"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(null)}
+                        className="rounded-lg px-3 py-1.5 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <Link
+                    key={deck.id}
+                    href={`/decks/${deck.id}`}
+                    className="block rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 space-y-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                          {deck.name}
+                        </h3>
+                        {deck.description && (
+                          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                            {deck.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            togglePin(deck.id, deck.pinned);
+                          }}
+                          className={`p-1 ${deck.pinned ? "text-accent-500" : "text-slate-400"} hover:text-accent-600 dark:hover:text-accent-400`}
+                          title={deck.pinned ? "Unpin" : "Pin to top"}
+                        >
+                          {deck.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            startEdit(deck);
+                          }}
+                          className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                          title="Edit"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleDelete(deck.id);
+                          }}
+                          className="p-1 text-slate-400 hover:text-red-500"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                      <span>{deck.card_count} cards</span>
+                      {deck.due_count > 0 && (
+                        <span className="rounded-full bg-accent-100 dark:bg-accent-900 text-accent-700 dark:text-accent-300 px-2 py-0.5 text-xs font-medium">
+                          {deck.due_count} due
+                        </span>
+                      )}
+                    </div>
+                    {deck.due_count > 0 && (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            router.push(`/study/${deck.id}`);
+                          }}
+                          className="rounded-lg bg-accent-500/80 dark:bg-accent-500/60 px-3 py-1.5 text-sm text-white hover:bg-accent-600/80 dark:hover:bg-accent-400/60 transition-colors"
+                        >
+                          Study ({deck.due_count})
+                        </button>
+                      </div>
+                    )}
+                  </Link>
+                ),
+              )}
+            </div>
+          )}
+          {decks.some((d) => d.pinned) && decks.some((d) => !d.pinned) && (
+            <hr className="border-dashed border-slate-200 dark:border-slate-700" />
+          )}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {decks.filter((d) => !d.pinned).map((deck) =>
+              editingId === deck.id ? (
               <form
                 key={deck.id}
                 onSubmit={handleEdit}
@@ -277,6 +409,16 @@ export default function DecksPage() {
                     <button
                       onClick={(e) => {
                         e.preventDefault();
+                        togglePin(deck.id, deck.pinned);
+                      }}
+                      className={`p-1 ${deck.pinned ? "text-accent-500" : "text-slate-400"} hover:text-accent-600 dark:hover:text-accent-400`}
+                      title={deck.pinned ? "Unpin" : "Pin to top"}
+                    >
+                      {deck.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
                         startEdit(deck);
                       }}
                       className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
@@ -321,6 +463,7 @@ export default function DecksPage() {
               </Link>
             ),
           )}
+          </div>
         </div>
       )}
 

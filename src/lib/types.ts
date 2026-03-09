@@ -3,6 +3,7 @@ export interface Deck {
   user_id: string;
   name: string;
   description: string | null;
+  pinned: boolean;
   created_at: string;
   updated_at: string;
 }
