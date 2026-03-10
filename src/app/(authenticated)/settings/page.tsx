@@ -646,7 +646,7 @@ export default function SettingsPage() {
             aria-label="Toggle vacation mode"
             onClick={handleVacationToggle}
             disabled={togglingVacation}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
+            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
               settings.vacation_mode
                 ? "bg-emerald-500"
                 : "bg-slate-300 dark:bg-slate-600"
