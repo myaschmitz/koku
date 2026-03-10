@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { scheduleCard, getSchedulingPreview, Rating } from "@/lib/srs";
 import { Markdown } from "@/components/markdown";
 import { splitCardContent } from "@/lib/card-utils";
+import { useOfflineSync } from "@/hooks/use-offline-sync";
+import { OfflineIndicator } from "@/components/offline-indicator";
 
 import Link from "next/link";
 import { PauseCircle } from "lucide-react";
@@ -26,6 +28,7 @@ interface SessionStats {
 
 export function StudySession({ cards, settings }: StudySessionProps) {
   const supabase = createClient();
+  const { exec, isOnline, pending } = useOfflineSync();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [done, setDone] = useState(false);
@@ -63,11 +66,12 @@ export function StudySession({ cards, settings }: StudySessionProps) {
   const handleSuspend = useCallback(async () => {
     if (!card || done) return;
 
-    // Suspend card in DB
-    await supabase
-      .from("cards")
-      .update({ suspended: true, updated_at: new Date().toISOString() })
-      .eq("id", card.id);
+    // Suspend card in DB (queued if offline)
+    await exec({
+      type: "update-card",
+      cardId: card.id,
+      fields: { suspended: true, updated_at: new Date().toISOString() },
+    });
 
     setSuspendedIds((prev) => new Set(prev).add(card.id));
 
@@ -83,7 +87,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
     } else {
       setDone(true);
     }
-  }, [card, currentIndex, cards, done, supabase, suspendedIds]);
+  }, [card, currentIndex, cards, done, exec, suspendedIds]);
 
   const handleRate = useCallback(
     async (rating: Grade) => {
@@ -107,11 +111,13 @@ export function StudySession({ cards, settings }: StudySessionProps) {
 
       const result = scheduleCard(card, rating, settings);
       const updatedCard = result.card;
+      const now = new Date().toISOString();
 
-      // Update card in DB
-      await supabase
-        .from("cards")
-        .update({
+      // Update card in DB (queued if offline)
+      await exec({
+        type: "update-card",
+        cardId: card.id,
+        fields: {
           stability: updatedCard.stability,
           difficulty: updatedCard.difficulty,
           elapsed_days: updatedCard.elapsed_days,
@@ -120,23 +126,26 @@ export function StudySession({ cards, settings }: StudySessionProps) {
           lapses: updatedCard.lapses,
           state: updatedCard.state,
           due: updatedCard.due.toISOString(),
-          last_review: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", card.id);
+          last_review: now,
+          updated_at: now,
+        },
+      });
 
-      // Insert review log
+      // Insert review log (queued if offline)
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from("review_logs").insert({
-          card_id: card.id,
-          user_id: user.id,
-          rating,
-          state: card.state,
-          elapsed_days: updatedCard.elapsed_days,
-          scheduled_days: updatedCard.scheduled_days,
+        await exec({
+          type: "insert-review-log",
+          row: {
+            card_id: card.id,
+            user_id: user.id,
+            rating,
+            state: card.state,
+            elapsed_days: updatedCard.elapsed_days,
+            scheduled_days: updatedCard.scheduled_days,
+          },
         });
       }
 
@@ -156,16 +165,17 @@ export function StudySession({ cards, settings }: StudySessionProps) {
         setDone(true);
       }
     },
-    [card, currentIndex, cards.length, supabase, settings],
+    [card, currentIndex, cards.length, supabase, exec, settings],
   );
 
   const handleUndo = useCallback(async () => {
     if (!undoSnapshot) return;
 
-    // Restore the card's original fields in DB
-    await supabase
-      .from("cards")
-      .update({
+    // Restore the card's original fields in DB (queued if offline)
+    await exec({
+      type: "update-card",
+      cardId: cards[undoSnapshot.index].id,
+      fields: {
         stability: undoSnapshot.original.stability,
         difficulty: undoSnapshot.original.difficulty,
         elapsed_days: undoSnapshot.original.elapsed_days,
@@ -176,23 +186,31 @@ export function StudySession({ cards, settings }: StudySessionProps) {
         due: undoSnapshot.original.due,
         last_review: undoSnapshot.original.last_review,
         updated_at: undoSnapshot.original.updated_at,
-      })
-      .eq("id", cards[undoSnapshot.index].id);
+      },
+    });
 
     // Delete the most recent review log for this card
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      const { data: logs } = await supabase
-        .from("review_logs")
-        .select("id")
-        .eq("card_id", cards[undoSnapshot.index].id)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1);
-      if (logs && logs.length > 0) {
-        await supabase.from("review_logs").delete().eq("id", logs[0].id);
+    // Note: this requires a read query, so it can only work online.
+    // When offline the undo card-restore is still queued; the stale
+    // review log will be harmless (duplicate) and can be cleaned up later.
+    if (navigator.onLine) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { data: logs } = await supabase
+          .from("review_logs")
+          .select("id")
+          .eq("card_id", cards[undoSnapshot.index].id)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        if (logs && logs.length > 0) {
+          await exec({
+            type: "delete-review-log",
+            logId: logs[0].id,
+          });
+        }
       }
     }
 
@@ -210,7 +228,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
     setShowAnswer(false);
     setDone(false);
     setUndoSnapshot(null);
-  }, [undoSnapshot, supabase, cards]);
+  }, [undoSnapshot, supabase, exec, cards]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -252,6 +270,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
   if (done) {
     return (
       <div className="max-w-lg mx-auto text-center py-20 space-y-6">
+        <OfflineIndicator isOnline={isOnline} pending={pending} />
         <h2 className="text-2xl font-bold">Session Complete!</h2>
         <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
           <p className="text-lg font-medium mb-4">
@@ -351,6 +370,9 @@ export function StudySession({ cards, settings }: StudySessionProps) {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      {/* Offline status */}
+      <OfflineIndicator isOnline={isOnline} pending={pending} />
+
       {/* Progress */}
       <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
         <span aria-live="polite" aria-atomic="true">
