@@ -134,7 +134,7 @@ export default function DecksPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
+      <div className="flex items-center justify-center py-20" role="status" aria-live="polite">
         <p className="text-slate-500 dark:text-slate-400">Loading...</p>
       </div>
     );
@@ -190,14 +190,18 @@ export default function DecksPage() {
           onSubmit={handleCreate}
           className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 p-4 space-y-3"
         >
+          <label htmlFor="new-deck-name" className="sr-only">Deck name</label>
           <input
+            id="new-deck-name"
             autoFocus
             placeholder="Deck name"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
           />
+          <label htmlFor="new-deck-desc" className="sr-only">Description (optional)</label>
           <input
+            id="new-deck-desc"
             placeholder="Description (optional)"
             value={newDesc}
             onChange={(e) => setNewDesc(e.target.value)}
@@ -296,7 +300,7 @@ export default function DecksPage() {
                             togglePin(deck.id, deck.pinned);
                           }}
                           className={`p-1 ${deck.pinned ? "text-accent-500" : "text-slate-400"} hover:text-accent-600 dark:hover:text-accent-400`}
-                          title={deck.pinned ? "Unpin" : "Pin to top"}
+                          aria-label={deck.pinned ? "Unpin" : "Pin to top"}
                         >
                           {deck.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
                         </button>
@@ -306,7 +310,7 @@ export default function DecksPage() {
                             startEdit(deck);
                           }}
                           className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                          title="Edit"
+                          aria-label="Edit deck"
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
@@ -316,7 +320,7 @@ export default function DecksPage() {
                             handleDelete(deck.id);
                           }}
                           className="p-1 text-slate-400 hover:text-red-500"
-                          title="Delete"
+                          aria-label="Delete deck"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>

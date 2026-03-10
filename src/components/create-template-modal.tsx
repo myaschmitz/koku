@@ -81,25 +81,32 @@ export function CreateTemplateModal({
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-[5vh]">
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-template-modal-title"
+        className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl"
+      >
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          <h2 id="create-template-modal-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100">
             New Template
           </h2>
           <button
             onClick={onClose}
             className="rounded-md p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            aria-label="Close dialog"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label htmlFor="template-name-input" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Template name
             </label>
             <input
+              id="template-name-input"
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}

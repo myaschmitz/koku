@@ -731,7 +731,7 @@ export function MarkdownEditor({
                 )}
                 <button
                   type="button"
-                  title={btn.title}
+                  aria-label={btn.title}
                   onClick={() => handleToolbar(btn.action)}
                   disabled={
                     btn.disabled ??
@@ -741,7 +741,7 @@ export function MarkdownEditor({
                     btn.action === "image" && uploading ? "animate-spin" : ""
                   }`}
                 >
-                  <btn.icon className="h-4 w-4" />
+                  <btn.icon className="h-4 w-4" aria-hidden="true" />
                 </button>
               </span>
             ))}
@@ -750,6 +750,7 @@ export function MarkdownEditor({
           <button
             type="button"
             onClick={() => setMode("write")}
+            aria-pressed={mode === "write" ? "true" : "false"}
             className={`px-2.5 py-1 rounded transition-colors ${
               mode === "write"
                 ? "bg-white dark:bg-slate-600 text-slate-900 dark:text-slate-100 shadow-sm"
@@ -761,6 +762,7 @@ export function MarkdownEditor({
           <button
             type="button"
             onClick={() => setMode("preview")}
+            aria-pressed={mode === "preview" ? "true" : "false"}
             className={`px-2.5 py-1 rounded transition-colors ${
               mode === "preview"
                 ? "bg-white dark:bg-slate-600 text-slate-900 dark:text-slate-100 shadow-sm"

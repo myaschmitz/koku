@@ -111,7 +111,7 @@ export function CardForm({
       </div>
 
       {duplicateWarning && (
-        <p className="text-xs text-amber-600 dark:text-amber-400">
+        <p role="alert" className="text-xs text-amber-600 dark:text-amber-400">
           A card titled &ldquo;{duplicateWarning}&rdquo; already exists in this
           deck.
         </p>

@@ -174,10 +174,15 @@ export function ImportModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="import-modal-title"
+        className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-          <h2 className="text-lg font-semibold">
+          <h2 id="import-modal-title" className="text-lg font-semibold">
             Import Cards
             {targetDeckName && (
               <span className="text-sm font-normal text-slate-500 dark:text-slate-400">
@@ -189,8 +194,9 @@ export function ImportModal({
           <button
             onClick={handleClose}
             className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+            aria-label="Close dialog"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -200,6 +206,9 @@ export function ImportModal({
             <>
               {/* Drop zone */}
               <div
+                role="button"
+                tabIndex={0}
+                aria-label="Drop a file here or click to browse"
                 onDragOver={(e) => {
                   e.preventDefault();
                   setDragOver(true);
@@ -207,6 +216,12 @@ export function ImportModal({
                 onDragLeave={() => setDragOver(false)}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    fileInputRef.current?.click();
+                  }
+                }}
                 className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
                   dragOver
                     ? "border-accent-500 bg-accent-50 dark:bg-accent-900/20"
@@ -227,6 +242,7 @@ export function ImportModal({
                 accept=".apkg,.csv,.tsv,.txt,.json"
                 onChange={handleFileSelect}
                 className="hidden"
+                aria-label="Choose file to import"
               />
 
               {/* Format hints */}
@@ -333,8 +349,8 @@ export function ImportModal({
 
           {/* Error */}
           {error && (
-            <div className="mt-4 flex gap-2 items-start rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3">
-              <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+            <div role="alert" className="mt-4 flex gap-2 items-start rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3">
+              <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" aria-hidden="true" />
               <p className="text-sm text-red-700 dark:text-red-300">
                 {error}
               </p>

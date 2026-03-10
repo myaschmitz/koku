@@ -502,7 +502,7 @@ export default function SettingsPage() {
                     : "border-transparent hover:scale-110"
                 }`}
                 style={{ backgroundColor: preset.value }}
-                title={preset.label}
+                aria-label={preset.label}
               />
             ))}
           </div>
@@ -512,7 +512,7 @@ export default function SettingsPage() {
               value={settings.accent_color ?? "#3b82f6"}
               onChange={(e) => handleAccentColorChange(e.target.value)}
               className="h-8 w-8 rounded cursor-pointer border border-slate-300 dark:border-slate-600 bg-transparent p-0"
-              title="Pick custom color"
+              aria-label="Pick custom accent color"
             />
             <input
               type="text"
@@ -615,7 +615,7 @@ export default function SettingsPage() {
                     }
                   }}
                   className="p-1 text-slate-400 hover:text-red-500 transition-colors"
-                  title="Delete template"
+                  aria-label={`Delete template ${template.name}`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -629,7 +629,7 @@ export default function SettingsPage() {
       <section className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Palmtree className="h-5 w-5 text-emerald-500" />
+            <Palmtree className="h-5 w-5 text-emerald-500" aria-hidden="true" />
             <div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 Vacation Mode
@@ -641,6 +641,8 @@ export default function SettingsPage() {
             </div>
           </div>
           <button
+            role="switch"
+            aria-checked={settings.vacation_mode ? "true" : "false"}
             aria-label="Toggle vacation mode"
             onClick={handleVacationToggle}
             disabled={togglingVacation}
@@ -651,6 +653,7 @@ export default function SettingsPage() {
             }`}
           >
             <span
+              aria-hidden="true"
               className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
                 settings.vacation_mode ? "translate-x-6" : "translate-x-1"
               }`}
@@ -717,8 +720,13 @@ export default function SettingsPage() {
       {/* Delete Account Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 space-y-4 shadow-xl">
-            <h3 className="text-lg font-semibold text-red-600 dark:text-red-400">
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-account-dialog-title"
+            className="mx-4 w-full max-w-md rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 space-y-4 shadow-xl"
+          >
+            <h3 id="delete-account-dialog-title" className="text-lg font-semibold text-red-600 dark:text-red-400">
               Delete Account
             </h3>
             <p className="text-sm text-slate-600 dark:text-slate-300">

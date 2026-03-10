@@ -68,7 +68,7 @@ export default function StudyDeckPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
+      <div className="flex items-center justify-center py-20" role="status" aria-live="polite">
         <p className="text-slate-500 dark:text-slate-400">Loading...</p>
       </div>
     );
@@ -77,8 +77,8 @@ export default function StudyDeckPage() {
   if (settings?.vacation_mode) {
     return (
       <div className="text-center py-20">
-        <Palmtree className="h-10 w-10 text-emerald-500 mx-auto mb-3" />
-        <h2 className="text-xl font-semibold mb-2">Vacation Mode Active</h2>
+        <Palmtree className="h-10 w-10 text-emerald-500 mx-auto mb-3" aria-hidden="true" />
+        <h1 className="text-xl font-semibold mb-2">Vacation Mode Active</h1>
         <p className="text-slate-500 dark:text-slate-400 mb-4">
           Reviews are paused. Turn off vacation mode in{" "}
           <Link href="/settings" className="text-accent-500 hover:text-accent-600">
@@ -90,7 +90,7 @@ export default function StudyDeckPage() {
           href={`/decks/${deckId}`}
           className="text-accent-500 hover:text-accent-600 text-sm"
         >
-          <ArrowLeft className="inline h-4 w-4" /> Back to deck
+          <ArrowLeft className="inline h-4 w-4" aria-hidden="true" /> Back to deck
         </Link>
       </div>
     );
@@ -99,7 +99,7 @@ export default function StudyDeckPage() {
   if (cards.length === 0) {
     return (
       <div className="text-center py-20">
-        <h2 className="text-xl font-semibold mb-2">No cards due!</h2>
+        <h1 className="text-xl font-semibold mb-2">No cards due!</h1>
         <p className="text-slate-500 dark:text-slate-400 mb-4">
           All caught up for this deck. Check back later.
         </p>
@@ -107,7 +107,7 @@ export default function StudyDeckPage() {
           href={`/decks/${deckId}`}
           className="text-accent-500 hover:text-accent-600 text-sm"
         >
-          <ArrowLeft className="inline h-4 w-4" /> Back to deck
+          <ArrowLeft className="inline h-4 w-4" aria-hidden="true" /> Back to deck
         </Link>
       </div>
     );

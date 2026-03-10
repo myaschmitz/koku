@@ -81,13 +81,14 @@ export function NewCardButton({
             : ""
         }`}
         aria-label="Choose card template"
+        aria-expanded={open ? "true" : "false"}
       >
-        <ChevronDown className="h-4 w-4" />
+        <ChevronDown className="h-4 w-4" aria-hidden="true" />
       </button>
 
       {/* Dropdown menu */}
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-50 w-56 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg py-1">
+        <div role="menu" className="absolute right-0 top-full mt-1 z-50 w-56 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg py-1">
           {BUILTIN_TEMPLATES.map((template) => (
             <DropdownItem
               key={template.id}
@@ -110,7 +111,7 @@ export function NewCardButton({
               }}
             />
           ))}
-          <div className="border-t border-slate-200 dark:border-slate-700 my-1" />
+          <div role="separator" className="border-t border-slate-200 dark:border-slate-700 my-1" />
           <DropdownItem
             icon="plus"
             label="New template"
@@ -137,6 +138,7 @@ function DropdownItem({
   return (
     <button
       type="button"
+      role="menuitem"
       onClick={onClick}
       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
     >

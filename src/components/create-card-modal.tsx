@@ -116,16 +116,22 @@ export function CreateCardModal({
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-[5vh]">
       <div className="fixed inset-0" onClick={tryClose} aria-hidden="true" />
-      <div className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-card-modal-title"
+        className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl"
+      >
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          <h2 id="create-card-modal-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100">
             New Card
           </h2>
           <button
             onClick={tryClose}
             className="rounded-md p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            aria-label="Close dialog"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -150,8 +156,13 @@ export function CreateCardModal({
             onClick={() => setShowDiscard(false)}
             aria-hidden="true"
           />
-          <div className="relative w-full max-w-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl p-6">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="discard-dialog-title"
+            className="relative w-full max-w-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl p-6"
+          >
+            <h3 id="discard-dialog-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
               Discard changes?
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">

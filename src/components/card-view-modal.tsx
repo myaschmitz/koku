@@ -89,10 +89,15 @@ export function CardViewModal({
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-[5vh]">
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="card-view-modal-title"
+        className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl"
+      >
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            <h2 id="card-view-modal-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               Card
             </h2>
             <div className="flex gap-1">
@@ -100,12 +105,12 @@ export function CardViewModal({
                 type="button"
                 onClick={handleCopy}
                 className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                title={copied ? "Copied!" : "Copy markdown"}
+                aria-label={copied ? "Copied!" : "Copy markdown"}
               >
                 {copied ? (
-                  <Check className="h-4 w-4 text-green-500" />
+                  <Check className="h-4 w-4 text-green-500" aria-hidden="true" />
                 ) : (
-                  <Copy className="h-4 w-4" />
+                  <Copy className="h-4 w-4" aria-hidden="true" />
                 )}
               </button>
               <button
@@ -116,36 +121,37 @@ export function CardViewModal({
                     ? "text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/30"
                     : "text-slate-400 hover:text-yellow-500 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
-                title={card.suspended ? "Unsuspend" : "Suspend"}
+                aria-label={card.suspended ? "Unsuspend card" : "Suspend card"}
               >
                 {card.suspended ? (
-                  <PlayCircle className="h-4 w-4" />
+                  <PlayCircle className="h-4 w-4" aria-hidden="true" />
                 ) : (
-                  <PauseCircle className="h-4 w-4" />
+                  <PauseCircle className="h-4 w-4" aria-hidden="true" />
                 )}
               </button>
               <Link
                 href={`/cards/${card.id}/edit`}
                 className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                title="Edit"
+                aria-label="Edit card"
               >
-                <Pencil className="h-4 w-4" />
+                <Pencil className="h-4 w-4" aria-hidden="true" />
               </Link>
               <button
                 type="button"
                 onClick={handleDelete}
                 className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                title="Delete"
+                aria-label="Delete card"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
           </div>
           <button
             onClick={onClose}
             className="rounded-md p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            aria-label="Close dialog"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 

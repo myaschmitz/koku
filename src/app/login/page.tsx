@@ -38,7 +38,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900 px-4">
+    <main className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900 px-4">
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
           <Link href="/" className="inline-block">
@@ -96,7 +96,9 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleMagicLink} className="space-y-4">
+          <label htmlFor="login-email" className="sr-only">Email address</label>
           <input
+            id="login-email"
             type="email"
             placeholder="Email address"
             value={email}
@@ -113,11 +115,11 @@ export default function LoginPage() {
         </form>
 
         {message && (
-          <p className="text-center text-sm text-slate-600 dark:text-slate-400">
+          <p role="status" aria-live="polite" className="text-center text-sm text-slate-600 dark:text-slate-400">
             {message}
           </p>
         )}
       </div>
-    </div>
+    </main>
   );
 }

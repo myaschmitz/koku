@@ -353,7 +353,7 @@ export function StudySession({ cards, settings }: StudySessionProps) {
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Progress */}
       <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
-        <span>
+        <span aria-live="polite" aria-atomic="true">
           Card {activeIndex + 1} of {activeCount}
         </span>
         <div className="flex items-center gap-3">
@@ -361,9 +361,9 @@ export function StudySession({ cards, settings }: StudySessionProps) {
             type="button"
             onClick={handleSuspend}
             className="flex items-center gap-1 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors"
-            title="Suspend card (S)"
+            aria-label="Suspend card (S)"
           >
-            <PauseCircle className="h-4 w-4" />
+            <PauseCircle className="h-4 w-4" aria-hidden="true" />
             <span>Suspend</span>
             <span className="ml-0.5 inline-flex items-center justify-center rounded bg-slate-200 dark:bg-slate-700 px-1 py-0.5 text-[10px] font-mono leading-none">
               S
@@ -379,7 +379,11 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       </div>
 
       {/* Progress bar */}
-      <div className="h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+      <div
+        className="h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
+        role="progressbar"
+        aria-label={`Study progress: ${activeIndex} of ${activeCount} cards`}
+      >
         <div
           className="h-full bg-accent-500/80 transition-all duration-300"
           style={{

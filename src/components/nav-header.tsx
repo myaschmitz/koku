@@ -40,7 +40,7 @@ export function NavHeader() {
         >
           <Image
             src="/koku-circle-logo.svg"
-            alt=""
+            alt="Koku logo"
             width={28}
             height={28}
             className="dark:invert"
@@ -54,9 +54,9 @@ export function NavHeader() {
           <Link
             href="/settings"
             className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-            title="Settings"
+            aria-label="Settings"
           >
-            <Settings className="h-5 w-5" />
+            <Settings className="h-5 w-5" aria-hidden="true" />
           </Link>
           <button
             onClick={handleSignOut}
@@ -72,11 +72,12 @@ export function NavHeader() {
             onClick={() => setMenuOpen(!menuOpen)}
             className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
             aria-label="Menu"
+            aria-expanded={menuOpen ? "true" : "false"}
           >
-            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {menuOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
           </button>
           {menuOpen && (
-            <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg py-2">
+            <nav className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg py-2" aria-label="User menu">
               <div className="px-3 py-2">
                 <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mb-2">Theme</p>
                 <ThemeToggle />
@@ -97,10 +98,10 @@ export function NavHeader() {
                 }}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-4 w-4" aria-hidden="true" />
                 Sign out
               </button>
-            </div>
+            </nav>
           )}
         </div>
       </div>

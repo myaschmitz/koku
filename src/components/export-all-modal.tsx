@@ -162,20 +162,26 @@ export function ExportAllModal({ open, onClose }: ExportAllModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md mx-4">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="export-all-modal-title"
+        className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md mx-4"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-          <h2 className="text-lg font-semibold">Export All Decks</h2>
+          <h2 id="export-all-modal-title" className="text-lg font-semibold">Export All Decks</h2>
           <button
             onClick={onClose}
             className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+            aria-label="Close dialog"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
         {/* Format selection */}
-        <div className="px-6 py-4 space-y-3">
+        <div className="px-6 py-4 space-y-3" role="radiogroup" aria-label="Export format">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Choose a format for your export:
           </p>
