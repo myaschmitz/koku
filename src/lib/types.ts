@@ -70,4 +70,6 @@ export interface CardTemplate {
 export interface DeckWithCounts extends Deck {
   card_count: number;
   due_count: number;
+  new_count: number;
+  learn_count: number;
 }

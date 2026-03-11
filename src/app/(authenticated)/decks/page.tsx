@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Pencil, Trash2, Upload, Download, Pin, PinOff } from "lucide-react";
+import { Pencil, Trash2, Upload, Download, Pin, PinOff, LayoutGrid, List } from "lucide-react";
 import type { DeckWithCounts } from "@/lib/types";
 import { ImportModal } from "@/components/import-modal";
 import { ExportAllModal } from "@/components/export-all-modal";
@@ -24,6 +24,7 @@ export default function DecksPage() {
   const [totalDue, setTotalDue] = useState(0);
   const [showImport, setShowImport] = useState(false);
   const [showExportAll, setShowExportAll] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const fetchDecks = async () => {
     const {
@@ -46,17 +47,40 @@ export default function DecksPage() {
           .select("*", { count: "exact", head: true })
           .eq("deck_id", deck.id);
 
-        const { count: dueCount } = await supabase
+        // New cards (state=0, not suspended)
+        const { count: newCount } = await supabase
           .from("cards")
           .select("*", { count: "exact", head: true })
           .eq("deck_id", deck.id)
           .eq("suspended", false)
+          .eq("state", 0);
+
+        // Learning/relearning cards (state=1 or state=3, due now)
+        const { count: learnCount } = await supabase
+          .from("cards")
+          .select("*", { count: "exact", head: true })
+          .eq("deck_id", deck.id)
+          .eq("suspended", false)
+          .in("state", [1, 3])
           .lte("due", now);
+
+        // Review cards (state=2, due now)
+        const { count: reviewDueCount } = await supabase
+          .from("cards")
+          .select("*", { count: "exact", head: true })
+          .eq("deck_id", deck.id)
+          .eq("suspended", false)
+          .eq("state", 2)
+          .lte("due", now);
+
+        const dueCount = (newCount ?? 0) + (learnCount ?? 0) + (reviewDueCount ?? 0);
 
         return {
           ...deck,
           card_count: cardCount ?? 0,
-          due_count: dueCount ?? 0,
+          due_count: dueCount,
+          new_count: newCount ?? 0,
+          learn_count: learnCount ?? 0,
         };
       }),
     );
@@ -155,6 +179,28 @@ export default function DecksPage() {
           )}
         </div>
         <div className="flex flex-wrap justify-end gap-2 sm:gap-3 items-center">
+          <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden">
+            <Tooltip label="Grid view">
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                aria-label="Grid view"
+                className={`p-2 text-sm transition-colors ${viewMode === "grid" ? "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100" : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"}`}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label="List view">
+              <button
+                type="button"
+                onClick={() => setViewMode("list")}
+                aria-label="List view"
+                className={`p-2 text-sm transition-colors ${viewMode === "list" ? "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100" : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"}`}
+              >
+                <List className="h-4 w-4" />
+              </button>
+            </Tooltip>
+          </div>
           <Tooltip label="Import deck">
             <button
               type="button"
@@ -236,6 +282,93 @@ export default function DecksPage() {
           >
             + New Deck
           </button>
+        </div>
+      ) : viewMode === "list" ? (
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-slate-700 text-left">
+                <th className="px-3 sm:px-4 py-3 font-medium text-slate-500 dark:text-slate-400">Deck</th>
+                <th className="px-2 sm:px-4 py-3 font-medium text-blue-600 dark:text-blue-400 text-right w-12 sm:w-16">New</th>
+                <th className="px-2 sm:px-4 py-3 font-medium text-orange-600 dark:text-orange-400 text-right w-12 sm:w-16">Learn</th>
+                <th className="px-2 sm:px-4 py-3 font-medium text-green-600 dark:text-green-400 text-right w-12 sm:w-16">Due</th>
+                <th className="hidden sm:table-cell px-4 py-3 w-24"><span className="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {decks.map((deck) => (
+                <tr
+                  key={deck.id}
+                  onClick={() => router.push(`/decks/${deck.id}`)}
+                  className="border-b last:border-b-0 border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
+                >
+                  <td className="px-3 sm:px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      {deck.pinned && <Pin className="h-3 w-3 text-accent-500 shrink-0" />}
+                      <span className="font-medium text-slate-900 dark:text-slate-100">{deck.name}</span>
+                    </div>
+                    {deck.description && (
+                      <p className="hidden sm:block text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-xs">
+                        {deck.description}
+                      </p>
+                    )}
+                  </td>
+                  <td className="px-2 sm:px-4 py-3 text-right tabular-nums">
+                    <span className={deck.new_count > 0 ? "text-blue-600 dark:text-blue-400 font-medium" : "text-slate-400 dark:text-slate-500"}>
+                      {deck.new_count}
+                    </span>
+                  </td>
+                  <td className="px-2 sm:px-4 py-3 text-right tabular-nums">
+                    <span className={deck.learn_count > 0 ? "text-orange-600 dark:text-orange-400 font-medium" : "text-slate-400 dark:text-slate-500"}>
+                      {deck.learn_count}
+                    </span>
+                  </td>
+                  <td className="px-2 sm:px-4 py-3 text-right tabular-nums">
+                    <span className={(deck.due_count - deck.new_count - deck.learn_count) > 0 ? "text-green-600 dark:text-green-400 font-medium" : "text-slate-400 dark:text-slate-500"}>
+                      {deck.due_count - deck.new_count - deck.learn_count}
+                    </span>
+                  </td>
+                  <td className="hidden sm:table-cell px-4 py-3">
+                    <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                      {deck.due_count > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/study/${deck.id}`)}
+                          className="rounded bg-accent-500/80 dark:bg-accent-500/60 px-2 py-1 text-xs text-white hover:bg-accent-600/80 dark:hover:bg-accent-400/60 transition-colors"
+                        >
+                          Study
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => togglePin(deck.id, deck.pinned)}
+                        className={`p-1 ${deck.pinned ? "text-accent-500" : "text-slate-400"} hover:text-accent-600 dark:hover:text-accent-400`}
+                        aria-label={deck.pinned ? "Unpin" : "Pin to top"}
+                      >
+                        {deck.pinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => startEdit(deck)}
+                        className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                        aria-label="Edit deck"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(deck.id)}
+                        className="p-1 text-slate-400 hover:text-red-500"
+                        aria-label="Delete deck"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       ) : (
         <div className="space-y-4">
