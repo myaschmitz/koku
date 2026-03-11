@@ -107,6 +107,7 @@ export default function SettingsPage() {
           data.again_interval_hours,
           data.hard_interval_hours,
           data.max_new_cards_per_day,
+          data.wrap_up_count,
           data.font_size,
           data.font_family,
           data.default_template,
@@ -129,6 +130,7 @@ export default function SettingsPage() {
         again_interval_hours: updatedSettings.again_interval_hours,
         hard_interval_hours: updatedSettings.hard_interval_hours,
         max_new_cards_per_day: updatedSettings.max_new_cards_per_day,
+        wrap_up_count: updatedSettings.wrap_up_count,
         font_size: updatedSettings.font_size,
         font_family: updatedSettings.font_family,
         default_template: updatedSettings.default_template,
@@ -153,6 +155,7 @@ export default function SettingsPage() {
       settings.again_interval_hours,
       settings.hard_interval_hours,
       settings.max_new_cards_per_day,
+      settings.wrap_up_count,
       settings.font_size,
       settings.font_family,
       settings.default_template,
@@ -175,6 +178,7 @@ export default function SettingsPage() {
     settings?.again_interval_hours,
     settings?.hard_interval_hours,
     settings?.max_new_cards_per_day,
+    settings?.wrap_up_count,
     settings?.font_size,
     settings?.font_family,
     settings?.default_template,
@@ -388,6 +392,31 @@ export default function SettingsPage() {
               }
               className="w-full sm:w-48 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Wrap-up card count:
+            </label>
+            <input
+              type="number"
+              min={3}
+              max={20}
+              value={settings.wrap_up_count ?? 10}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  wrap_up_count: Math.max(
+                    3,
+                    Math.min(20, Number(e.target.value) || 10),
+                  ),
+                })
+              }
+              className="w-full sm:w-48 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+            />
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+              How many cards to finish after pressing Wrap Up during a session.
+            </p>
           </div>
         </div>
 

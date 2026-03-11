@@ -9,7 +9,7 @@ import { useOfflineSync } from "@/hooks/use-offline-sync";
 import { OfflineIndicator } from "@/components/offline-indicator";
 
 import Link from "next/link";
-import { PauseCircle } from "lucide-react";
+import { PauseCircle, Clock } from "lucide-react";
 import type { Grade } from "ts-fsrs";
 import type { Card, UserSettings } from "@/lib/types";
 
@@ -61,7 +61,26 @@ export function StudySession({ cards, settings }: StudySessionProps) {
 
   const [suspendedIds, setSuspendedIds] = useState<Set<string>>(new Set());
 
+  // Wrap-up: when activated, only allow `wrapUpRemaining` more cards
+  const [wrappingUp, setWrappingUp] = useState(false);
+  const [wrapUpRemaining, setWrapUpRemaining] = useState(0);
+
   const card = cards[currentIndex];
+
+  const handleWrapUp = useCallback(() => {
+    if (done) return;
+    if (wrappingUp) {
+      // Cancel wrap-up
+      setWrappingUp(false);
+      setWrapUpRemaining(0);
+      return;
+    }
+    const count = settings.wrap_up_count ?? 10;
+    const remaining = cards.length - currentIndex;
+    // Use the smaller of the setting or what's actually left
+    setWrappingUp(true);
+    setWrapUpRemaining(Math.min(count, remaining));
+  }, [wrappingUp, done, settings.wrap_up_count, cards.length, currentIndex]);
 
   const handleSuspend = useCallback(async () => {
     if (!card || done) return;
@@ -81,13 +100,22 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       nextIndex++;
     }
 
+    if (wrappingUp) {
+      const next = wrapUpRemaining - 1;
+      setWrapUpRemaining(next);
+      if (next <= 0 || nextIndex >= cards.length) {
+        setDone(true);
+        return;
+      }
+    }
+
     if (nextIndex < cards.length) {
       setCurrentIndex(nextIndex);
       setShowAnswer(false);
     } else {
       setDone(true);
     }
-  }, [card, currentIndex, cards, done, exec, suspendedIds]);
+  }, [card, currentIndex, cards, done, exec, suspendedIds, wrappingUp, wrapUpRemaining]);
 
   const handleRate = useCallback(
     async (rating: Grade) => {
@@ -158,14 +186,23 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       });
 
       // Next card or done
-      if (currentIndex + 1 < cards.length) {
+      if (wrappingUp) {
+        const next = wrapUpRemaining - 1;
+        setWrapUpRemaining(next);
+        if (next <= 0 || currentIndex + 1 >= cards.length) {
+          setDone(true);
+          return;
+        }
+        setCurrentIndex((prev) => prev + 1);
+        setShowAnswer(false);
+      } else if (currentIndex + 1 < cards.length) {
         setCurrentIndex((prev) => prev + 1);
         setShowAnswer(false);
       } else {
         setDone(true);
       }
     },
-    [card, currentIndex, cards.length, supabase, exec, settings],
+    [card, currentIndex, cards.length, supabase, exec, settings, wrappingUp, wrapUpRemaining],
   );
 
   const handleUndo = useCallback(async () => {
@@ -261,11 +298,15 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       if (e.key === "s" || e.key === "S") {
         handleSuspend();
       }
+
+      if (e.key === "w" || e.key === "W") {
+        handleWrapUp();
+      }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showAnswer, done, card, handleRate, handleUndo, handleSuspend]);
+  }, [showAnswer, done, card, handleRate, handleUndo, handleSuspend, handleWrapUp]);
 
   if (done) {
     return (
@@ -376,19 +417,41 @@ export function StudySession({ cards, settings }: StudySessionProps) {
       {/* Progress */}
       <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
         <span aria-live="polite" aria-atomic="true">
-          Card {activeIndex + 1} of {activeCount}
+          {wrappingUp
+            ? `Wrapping up: ${wrapUpRemaining} card${wrapUpRemaining === 1 ? "" : "s"} left`
+            : `Card ${activeIndex + 1} of ${activeCount}`}
         </span>
         <div className="flex items-center gap-3">
           <button
             type="button"
+            onClick={handleWrapUp}
+            className={`group relative flex items-center gap-1 transition-colors ${
+              wrappingUp
+                ? "text-accent-500 hover:text-accent-700 dark:hover:text-accent-300"
+                : "hover:text-accent-600 dark:hover:text-accent-400"
+            }`}
+            aria-label={wrappingUp ? "Cancel wrap up (W)" : `Wrap up session – ${settings.wrap_up_count ?? 10} cards remaining (W)`}
+          >
+            <Clock className="h-4 w-4" aria-hidden="true" />
+            <span className="ml-0.5 inline-flex items-center justify-center rounded bg-slate-200 dark:bg-slate-700 px-1 py-0.5 text-[10px] font-mono leading-none">
+              W
+            </span>
+            <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-slate-800 dark:bg-slate-200 px-2 py-1 text-xs text-white dark:text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity">
+              {wrappingUp ? "Cancel wrap up" : "Wrap up"}
+            </span>
+          </button>
+          <button
+            type="button"
             onClick={handleSuspend}
-            className="flex items-center gap-1 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors"
+            className="group relative flex items-center gap-1 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors"
             aria-label="Suspend card (S)"
           >
             <PauseCircle className="h-4 w-4" aria-hidden="true" />
-            <span>Suspend</span>
             <span className="ml-0.5 inline-flex items-center justify-center rounded bg-slate-200 dark:bg-slate-700 px-1 py-0.5 text-[10px] font-mono leading-none">
               S
+            </span>
+            <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-slate-800 dark:bg-slate-200 px-2 py-1 text-xs text-white dark:text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity">
+              Suspend
             </span>
           </button>
           <Link

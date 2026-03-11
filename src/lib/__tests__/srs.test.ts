@@ -34,6 +34,7 @@ function makeSettings(overrides: Partial<UserSettings> = {}): UserSettings {
     good_interval_hours: 24,
     easy_interval_hours: 96,
     max_new_cards_per_day: 20,
+    wrap_up_count: 10,
     theme: "system",
     vacation_mode: false,
     vacation_started_at: null,

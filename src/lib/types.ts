@@ -52,6 +52,7 @@ export interface UserSettings {
   font_family: string; // "sans" | "serif" | "mono"
   default_template: string; // "flashcard", "no-template", or a UUID
   accent_color: string; // hex color, e.g. "#3b82f6"
+  wrap_up_count: number; // cards remaining after wrap-up (3–20, default 10)
   created_at: string;
   updated_at: string;
 }
