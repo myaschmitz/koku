@@ -55,7 +55,7 @@ export default function LoginPage() {
             </h1>
           </Link>
           <p className="mt-2 text-slate-600 dark:text-slate-400">
-            Spaced repetition
+            Spaced repetition, simplified
           </p>
         </div>
 
@@ -96,7 +96,9 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleMagicLink} className="space-y-4">
-          <label htmlFor="login-email" className="sr-only">Email address</label>
+          <label htmlFor="login-email" className="sr-only">
+            Email address
+          </label>
           <input
             id="login-email"
             type="email"
@@ -115,7 +117,11 @@ export default function LoginPage() {
         </form>
 
         {message && (
-          <p role="status" aria-live="polite" className="text-center text-sm text-slate-600 dark:text-slate-400">
+          <p
+            role="status"
+            aria-live="polite"
+            className="text-center text-sm text-slate-600 dark:text-slate-400"
+          >
             {message}
           </p>
         )}
