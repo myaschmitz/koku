@@ -28,6 +28,7 @@ import { NewCardButton } from "@/components/new-card-button";
 import { CreateTemplateModal } from "@/components/create-template-modal";
 import { Tooltip } from "@/components/tooltip";
 import { Markdown } from "@/components/markdown";
+import { useViewMode } from "@/hooks/use-view-mode";
 import { splitCardContent, getCardTitle } from "@/lib/card-utils";
 import { getTemplateContent } from "@/lib/card-templates";
 
@@ -175,7 +176,7 @@ export default function DeckDetailPage() {
   const [dueCount, setDueCount] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [viewMode, setViewMode] = useViewMode<ViewMode>("deck-detail", "grid");
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [viewCardId, setViewCardId] = useState<string | null>(null);
   const [showExport, setShowExport] = useState(false);

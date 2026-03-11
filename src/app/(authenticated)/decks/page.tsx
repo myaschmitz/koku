@@ -9,6 +9,7 @@ import type { DeckWithCounts } from "@/lib/types";
 import { ImportModal } from "@/components/import-modal";
 import { ExportAllModal } from "@/components/export-all-modal";
 import { Tooltip } from "@/components/tooltip";
+import { useViewMode } from "@/hooks/use-view-mode";
 
 export default function DecksPage() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function DecksPage() {
   const [totalDue, setTotalDue] = useState(0);
   const [showImport, setShowImport] = useState(false);
   const [showExportAll, setShowExportAll] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useViewMode<"grid" | "list">("decks", "grid");
 
   const fetchDecks = async () => {
     const {
