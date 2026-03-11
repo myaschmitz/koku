@@ -86,6 +86,18 @@ export default function SettingsPage() {
         .single();
 
       if (data) {
+        // Snapshot initial values BEFORE setSettings so the auto-save effect
+        // sees the ref and skips the first render (avoids spurious "Settings saved" toast).
+        lastSavedValues.current = JSON.stringify([
+          data.again_interval_hours,
+          data.hard_interval_hours,
+          data.max_new_cards_per_day,
+          data.wrap_up_count,
+          data.font_size,
+          data.font_family,
+          data.default_template,
+          data.accent_color,
+        ]);
         setSettings(data);
         if (data.theme && data.theme !== "system") {
           setTheme(data.theme);
@@ -101,19 +113,6 @@ export default function SettingsPage() {
       if (templates) setUserTemplates(templates as CardTemplate[]);
 
       setLoading(false);
-      // Snapshot initial values so auto-save only fires on user changes
-      if (data) {
-        lastSavedValues.current = JSON.stringify([
-          data.again_interval_hours,
-          data.hard_interval_hours,
-          data.max_new_cards_per_day,
-          data.wrap_up_count,
-          data.font_size,
-          data.font_family,
-          data.default_template,
-          data.accent_color,
-        ]);
-      }
     };
 
     fetchSettings();
