@@ -15,6 +15,7 @@ import {
   PlayCircle,
   Plus,
   Copy,
+  CopyPlus,
   Check,
   Download,
   Upload,
@@ -26,6 +27,7 @@ import { ExportModal } from "@/components/export-modal";
 import { ImportModal } from "@/components/import-modal";
 import { NewCardButton } from "@/components/new-card-button";
 import { CreateTemplateModal } from "@/components/create-template-modal";
+import { DuplicateCardModal } from "@/components/duplicate-card-modal";
 import { Tooltip } from "@/components/tooltip";
 import { Markdown } from "@/components/markdown";
 import { useViewMode } from "@/hooks/use-view-mode";
@@ -70,11 +72,13 @@ function CardActions({
   card,
   onDelete,
   onToggleSuspend,
+  onDuplicate,
   hideUntilHover,
 }: {
   card: Card;
   onDelete: (id: string) => void;
   onToggleSuspend: (id: string, suspended: boolean) => void;
+  onDuplicate: (card: Card) => void;
   hideUntilHover?: boolean;
 }) {
   return (
@@ -82,6 +86,14 @@ function CardActions({
       className={`flex gap-1 ${hideUntilHover ? "opacity-0 group-hover:opacity-100 transition-opacity" : ""}`}
     >
       <CopyButton content={card.content} />
+      <button
+        type="button"
+        onClick={() => onDuplicate(card)}
+        className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+        title="Duplicate"
+      >
+        <CopyPlus className="h-4 w-4" />
+      </button>
       <button
         type="button"
         onClick={() => onToggleSuspend(card.id, card.suspended)}
@@ -182,6 +194,7 @@ export default function DeckDetailPage() {
   const [showExport, setShowExport] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [duplicateCard, setDuplicateCard] = useState<Card | null>(null);
   const [userTemplates, setUserTemplates] = useState<CardTemplate[]>([]);
   const [defaultTemplateId, setDefaultTemplateId] = useState("flashcard");
   const [templateContent, setTemplateContent] = useState("");
@@ -474,6 +487,7 @@ export default function DeckDetailPage() {
                       card={card}
                       onDelete={handleDeleteCard}
                       onToggleSuspend={handleToggleSuspend}
+                      onDuplicate={setDuplicateCard}
                     />
                   </div>
                   <CardFrontBack card={card} compact />
@@ -535,6 +549,14 @@ export default function DeckDetailPage() {
                       <div />
                       <div className="flex gap-1">
                         <CopyButton content={selectedCard.content} />
+                        <button
+                          type="button"
+                          onClick={() => setDuplicateCard(selectedCard)}
+                          className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                          title="Duplicate"
+                        >
+                          <CopyPlus className="h-4 w-4" />
+                        </button>
                         <button
                           type="button"
                           onClick={() =>
@@ -616,6 +638,7 @@ export default function DeckDetailPage() {
                       card={card}
                       onDelete={handleDeleteCard}
                       onToggleSuspend={handleToggleSuspend}
+                      onDuplicate={setDuplicateCard}
                       hideUntilHover
                     />
                   </div>
@@ -658,6 +681,10 @@ export default function DeckDetailPage() {
           setViewCardId(null);
           handleDeleteCard(id);
         }}
+        onDuplicate={(card) => {
+          setViewCardId(null);
+          setDuplicateCard(card);
+        }}
       />
 
       <ExportModal
@@ -673,6 +700,17 @@ export default function DeckDetailPage() {
         targetDeckId={deckId}
         targetDeckName={deck.name}
       />
+
+      {userId && (
+        <DuplicateCardModal
+          card={duplicateCard}
+          currentDeckId={deckId}
+          userId={userId}
+          open={duplicateCard !== null}
+          onClose={() => setDuplicateCard(null)}
+          onDuplicated={refreshCards}
+        />
+      )}
     </div>
   );
 }

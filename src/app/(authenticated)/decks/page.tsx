@@ -4,8 +4,9 @@ import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Pencil, Trash2, Upload, Download, Pin, PinOff, LayoutGrid, List } from "lucide-react";
-import type { DeckWithCounts } from "@/lib/types";
+import { Pencil, Trash2, Upload, Download, Pin, PinOff, LayoutGrid, List, CopyPlus } from "lucide-react";
+import type { Deck, DeckWithCounts } from "@/lib/types";
+import { DuplicateDeckModal } from "@/components/duplicate-deck-modal";
 import { ImportModal } from "@/components/import-modal";
 import { ExportAllModal } from "@/components/export-all-modal";
 import { Tooltip } from "@/components/tooltip";
@@ -25,6 +26,7 @@ export default function DecksPage() {
   const [totalDue, setTotalDue] = useState(0);
   const [showImport, setShowImport] = useState(false);
   const [showExportAll, setShowExportAll] = useState(false);
+  const [duplicateDeck, setDuplicateDeck] = useState<Deck | null>(null);
   const [viewMode, setViewMode] = useViewMode<"grid" | "list">("decks", "grid");
 
   const fetchDecks = async () => {
@@ -350,6 +352,14 @@ export default function DecksPage() {
                       </button>
                       <button
                         type="button"
+                        onClick={() => setDuplicateDeck(deck)}
+                        className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                        aria-label="Duplicate deck"
+                      >
+                        <CopyPlus className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => startEdit(deck)}
                         className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                         aria-label="Edit deck"
@@ -437,6 +447,16 @@ export default function DecksPage() {
                           aria-label={deck.pinned ? "Unpin" : "Pin to top"}
                         >
                           {deck.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setDuplicateDeck(deck);
+                          }}
+                          className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                          aria-label="Duplicate deck"
+                        >
+                          <CopyPlus className="h-4 w-4" />
                         </button>
                         <button
                           onClick={(e) => {
@@ -557,6 +577,16 @@ export default function DecksPage() {
                     <button
                       onClick={(e) => {
                         e.preventDefault();
+                        setDuplicateDeck(deck);
+                      }}
+                      className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                      title="Duplicate"
+                    >
+                      <CopyPlus className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
                         startEdit(deck);
                       }}
                       className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
@@ -614,6 +644,13 @@ export default function DecksPage() {
       <ExportAllModal
         open={showExportAll}
         onClose={() => setShowExportAll(false)}
+      />
+
+      <DuplicateDeckModal
+        deck={duplicateDeck}
+        open={duplicateDeck !== null}
+        onClose={() => setDuplicateDeck(null)}
+        onDuplicated={fetchDecks}
       />
     </div>
   );

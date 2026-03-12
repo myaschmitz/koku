@@ -9,6 +9,7 @@ import {
   PauseCircle,
   PlayCircle,
   Copy,
+  CopyPlus,
   Check,
 } from "lucide-react";
 import { Markdown } from "@/components/markdown";
@@ -29,6 +30,7 @@ interface CardViewModalProps {
   onClose: () => void;
   onToggleSuspend: (cardId: string, currentSuspended: boolean) => void;
   onDelete: (cardId: string) => void;
+  onDuplicate?: (card: Card) => void;
 }
 
 export function CardViewModal({
@@ -37,6 +39,7 @@ export function CardViewModal({
   onClose,
   onToggleSuspend,
   onDelete,
+  onDuplicate,
 }: CardViewModalProps) {
   const [copied, setCopied] = useState(false);
 
@@ -113,6 +116,19 @@ export function CardViewModal({
                   <Copy className="h-4 w-4" aria-hidden="true" />
                 )}
               </button>
+              {onDuplicate && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onDuplicate(card);
+                    onClose();
+                  }}
+                  className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  aria-label="Duplicate card"
+                >
+                  <CopyPlus className="h-4 w-4" aria-hidden="true" />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => onToggleSuspend(card.id, card.suspended)}
