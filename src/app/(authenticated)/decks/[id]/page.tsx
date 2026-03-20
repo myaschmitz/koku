@@ -19,7 +19,10 @@ import {
   Check,
   Download,
   Upload,
+  CheckSquare,
+  ArrowRightLeft,
 } from "lucide-react";
+import { toast } from "sonner";
 import type { Card, Deck, CardTemplate } from "@/lib/types";
 import { CreateCardModal } from "@/components/create-card-modal";
 import { CardViewModal } from "@/components/card-view-modal";
@@ -28,11 +31,13 @@ import { ImportModal } from "@/components/import-modal";
 import { NewCardButton } from "@/components/new-card-button";
 import { CreateTemplateModal } from "@/components/create-template-modal";
 import { DuplicateCardModal } from "@/components/duplicate-card-modal";
+import { BulkCardActionModal } from "@/components/bulk-card-action-modal";
 import { Tooltip } from "@/components/tooltip";
 import { Markdown } from "@/components/markdown";
 import { useViewMode } from "@/hooks/use-view-mode";
 import { splitCardContent, getCardTitle } from "@/lib/card-utils";
 import { getTemplateContent } from "@/lib/card-templates";
+import { duplicateCardImages } from "@/lib/duplicate-utils";
 
 const STATE_LABELS = ["New", "Learning", "Review", "Relearning"];
 const STATE_COLORS = [
@@ -198,6 +203,13 @@ export default function DeckDetailPage() {
   const [userTemplates, setUserTemplates] = useState<CardTemplate[]>([]);
   const [defaultTemplateId, setDefaultTemplateId] = useState("flashcard");
   const [templateContent, setTemplateContent] = useState("");
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedCardIds, setSelectedCardIds] = useState<Set<string>>(
+    new Set(),
+  );
+  const [showBulkMoveModal, setShowBulkMoveModal] = useState(false);
+  const [showBulkDuplicateModal, setShowBulkDuplicateModal] = useState(false);
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const columnDetailRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -216,11 +228,21 @@ export default function DeckDetailPage() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
+        e.key === "Escape" &&
+        selectionMode &&
+        !showBulkMoveModal &&
+        !showBulkDuplicateModal
+      ) {
+        exitSelectionMode();
+        return;
+      }
+      if (
         e.key === "n" &&
         !e.metaKey &&
         !e.ctrlKey &&
         !e.altKey &&
         !showCreateModal &&
+        !selectionMode &&
         !(e.target instanceof HTMLInputElement) &&
         !(e.target instanceof HTMLTextAreaElement) &&
         !(e.target as HTMLElement)?.isContentEditable
@@ -231,7 +253,7 @@ export default function DeckDetailPage() {
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showCreateModal, defaultTemplateId, handleTemplateSelect]);
+  }, [showCreateModal, defaultTemplateId, handleTemplateSelect, selectionMode, showBulkMoveModal, showBulkDuplicateModal]);
 
   const refreshCards = useCallback(async () => {
     const { data: cardsData } = await supabase
@@ -332,6 +354,161 @@ export default function DeckDetailPage() {
     setDueCount(count ?? 0);
   };
 
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelectedCardIds(new Set());
+  };
+
+  const toggleCardSelection = (id: string) => {
+    setSelectedCardIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const refreshDueCount = async () => {
+    const now = new Date().toISOString();
+    const { count } = await supabase
+      .from("cards")
+      .select("*", { count: "exact", head: true })
+      .eq("deck_id", deckId)
+      .eq("suspended", false)
+      .lte("due", now);
+    setDueCount(count ?? 0);
+  };
+
+  const handleBulkDelete = async () => {
+    const count = selectedCardIds.size;
+    if (
+      !confirm(
+        `Delete ${count} card${count === 1 ? "" : "s"}? This cannot be undone.`,
+      )
+    )
+      return;
+    setBulkActionLoading(true);
+    const { error } = await supabase
+      .from("cards")
+      .delete()
+      .in("id", Array.from(selectedCardIds));
+    if (error) {
+      toast.error("Failed to delete cards");
+      setBulkActionLoading(false);
+      return;
+    }
+    setCards((prev) => prev.filter((c) => !selectedCardIds.has(c.id)));
+    toast.success(`Deleted ${count} card${count === 1 ? "" : "s"}`);
+    exitSelectionMode();
+    setBulkActionLoading(false);
+    await refreshDueCount();
+  };
+
+  const handleBulkToggleSuspend = async () => {
+    const selected = cards.filter((c) => selectedCardIds.has(c.id));
+    const allSuspended = selected.every((c) => c.suspended);
+    const newSuspended = !allSuspended;
+    setBulkActionLoading(true);
+    const { error } = await supabase
+      .from("cards")
+      .update({
+        suspended: newSuspended,
+        updated_at: new Date().toISOString(),
+      })
+      .in("id", Array.from(selectedCardIds));
+    if (error) {
+      toast.error("Failed to update cards");
+      setBulkActionLoading(false);
+      return;
+    }
+    setCards((prev) =>
+      prev.map((c) =>
+        selectedCardIds.has(c.id) ? { ...c, suspended: newSuspended } : c,
+      ),
+    );
+    const count = selected.length;
+    toast.success(
+      `${newSuspended ? "Suspended" : "Unsuspended"} ${count} card${count === 1 ? "" : "s"}`,
+    );
+    exitSelectionMode();
+    setBulkActionLoading(false);
+    await refreshDueCount();
+  };
+
+  const handleBulkMove = async (targetDeckId: string) => {
+    setBulkActionLoading(true);
+    const ids = Array.from(selectedCardIds);
+    const { error } = await supabase
+      .from("cards")
+      .update({
+        deck_id: targetDeckId,
+        updated_at: new Date().toISOString(),
+      })
+      .in("id", ids);
+    if (error) {
+      toast.error("Failed to move cards");
+      setBulkActionLoading(false);
+      return;
+    }
+    setCards((prev) => prev.filter((c) => !selectedCardIds.has(c.id)));
+    toast.success(
+      `Moved ${ids.length} card${ids.length === 1 ? "" : "s"}`,
+    );
+    exitSelectionMode();
+    setShowBulkMoveModal(false);
+    setBulkActionLoading(false);
+    await refreshDueCount();
+  };
+
+  const handleBulkDuplicate = async (targetDeckId: string) => {
+    if (!userId) return;
+    setBulkActionLoading(true);
+    const selectedCards = cards.filter((c) => selectedCardIds.has(c.id));
+    const BATCH_SIZE = 100;
+
+    try {
+      for (let i = 0; i < selectedCards.length; i += BATCH_SIZE) {
+        const batch = selectedCards.slice(i, i + BATCH_SIZE);
+        const newCards = await Promise.all(
+          batch.map(async (card) => {
+            const newCardId = crypto.randomUUID();
+            const newStoragePath = `${userId}/${newCardId}`;
+            const updatedContent = await duplicateCardImages(
+              supabase,
+              card.content,
+              newStoragePath,
+            );
+            return {
+              id: newCardId,
+              deck_id: targetDeckId,
+              user_id: userId,
+              content: updatedContent,
+            };
+          }),
+        );
+        await supabase.from("cards").insert(newCards);
+      }
+
+      const count = selectedCards.length;
+      toast.success(
+        `Duplicated ${count} card${count === 1 ? "" : "s"}`,
+      );
+
+      if (targetDeckId === deckId) {
+        await refreshCards();
+      }
+    } catch {
+      toast.error("Failed to duplicate cards");
+    }
+
+    exitSelectionMode();
+    setShowBulkDuplicateModal(false);
+    setBulkActionLoading(false);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -406,32 +583,58 @@ export default function DeckDetailPage() {
           </div>
           <div className="flex-1" />
           <div className="flex items-center gap-2 sm:gap-3">
-            <Tooltip label="Import cards">
-              <button
-                type="button"
-                onClick={() => setShowImport(true)}
-                aria-label="Import cards"
-                className="rounded-lg border border-slate-300 dark:border-slate-600 p-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <Upload className="h-4 w-4" />
-              </button>
-            </Tooltip>
-            <Tooltip label="Export deck">
-              <button
-                type="button"
-                onClick={() => setShowExport(true)}
-                aria-label="Export deck"
-                className="rounded-lg border border-slate-300 dark:border-slate-600 p-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <Download className="h-4 w-4" />
-              </button>
-            </Tooltip>
-            <NewCardButton
-              defaultTemplateId={defaultTemplateId}
-              userTemplates={userTemplates}
-              onSelect={handleTemplateSelect}
-              onNewTemplate={() => setShowTemplateModal(true)}
-            />
+            {!selectionMode && (
+              <>
+                <Tooltip label="Import cards">
+                  <button
+                    type="button"
+                    onClick={() => setShowImport(true)}
+                    aria-label="Import cards"
+                    className="rounded-lg border border-slate-300 dark:border-slate-600 p-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <Upload className="h-4 w-4" />
+                  </button>
+                </Tooltip>
+                <Tooltip label="Export deck">
+                  <button
+                    type="button"
+                    onClick={() => setShowExport(true)}
+                    aria-label="Export deck"
+                    className="rounded-lg border border-slate-300 dark:border-slate-600 p-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <Download className="h-4 w-4" />
+                  </button>
+                </Tooltip>
+              </>
+            )}
+            {cards.length > 0 && (
+              <Tooltip label={selectionMode ? "Cancel selection" : "Select cards"}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    selectionMode
+                      ? exitSelectionMode()
+                      : setSelectionMode(true)
+                  }
+                  aria-label={selectionMode ? "Cancel selection" : "Select cards"}
+                  className={`rounded-lg border p-2 text-sm transition-colors ${
+                    selectionMode
+                      ? "border-accent-500 dark:border-accent-400 bg-accent-50 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400"
+                      : "border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  <CheckSquare className="h-4 w-4" />
+                </button>
+              </Tooltip>
+            )}
+            {!selectionMode && (
+              <NewCardButton
+                defaultTemplateId={defaultTemplateId}
+                userTemplates={userTemplates}
+                onSelect={handleTemplateSelect}
+                onNewTemplate={() => setShowTemplateModal(true)}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -472,26 +675,53 @@ export default function DeckDetailPage() {
                   key={card.id}
                   role="link"
                   tabIndex={0}
-                  aria-label={`View card: ${getCardTitle(card.content)}`}
-                  onClick={() => setViewCardId(card.id)}
+                  aria-label={`${selectionMode ? "Select" : "View"} card: ${getCardTitle(card.content)}`}
+                  onClick={() =>
+                    selectionMode
+                      ? toggleCardSelection(card.id)
+                      : setViewCardId(card.id)
+                  }
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") setViewCardId(card.id);
+                    if (e.key === "Enter")
+                      selectionMode
+                        ? toggleCardSelection(card.id)
+                        : setViewCardId(card.id);
                   }}
-                  className="group relative block cursor-pointer rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                  className={`group relative block cursor-pointer rounded-lg border bg-white dark:bg-slate-800 p-4 transition-colors ${
+                    selectionMode && selectedCardIds.has(card.id)
+                      ? "border-accent-500 dark:border-accent-400 ring-2 ring-accent-500/20"
+                      : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600"
+                  }`}
                 >
-                  <div
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-0.5 rounded-md bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 shadow-sm px-1 py-0.5"
-                  >
-                    <CardActions
-                      card={card}
-                      onDelete={handleDeleteCard}
-                      onToggleSuspend={handleToggleSuspend}
-                      onDuplicate={setDuplicateCard}
-                    />
+                  {selectionMode && (
+                    <div className="absolute top-3 left-3 z-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedCardIds.has(card.id)}
+                        onChange={() => toggleCardSelection(card.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`Select card: ${getCardTitle(card.content)}`}
+                        className="h-4 w-4 rounded border-slate-300 text-accent-500 focus:ring-accent-500"
+                      />
+                    </div>
+                  )}
+                  {!selectionMode && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-0.5 rounded-md bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 shadow-sm px-1 py-0.5"
+                    >
+                      <CardActions
+                        card={card}
+                        onDelete={handleDeleteCard}
+                        onToggleSuspend={handleToggleSuspend}
+                        onDuplicate={setDuplicateCard}
+                      />
+                    </div>
+                  )}
+                  <div className={selectionMode ? "pl-6" : ""}>
+                    <CardFrontBack card={card} compact />
+                    <CardMeta card={card} />
                   </div>
-                  <CardFrontBack card={card} compact />
-                  <CardMeta card={card} />
                 </div>
               ))}
             </div>
@@ -517,17 +747,35 @@ export default function DeckDetailPage() {
                   <button
                     key={card.id}
                     type="button"
-                    onClick={() => setSelectedCardId(card.id)}
+                    onClick={() =>
+                      selectionMode
+                        ? toggleCardSelection(card.id)
+                        : setSelectedCardId(card.id)
+                    }
                     className={`w-full text-left rounded-lg border p-3 transition-colors ${
-                      selectedCardId === card.id
-                        ? "border-accent-500 dark:border-accent-400 bg-accent-50 dark:bg-accent-900/30"
-                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                      selectionMode && selectedCardIds.has(card.id)
+                        ? "border-accent-500 dark:border-accent-400 bg-accent-50 dark:bg-accent-900/30 ring-2 ring-accent-500/20"
+                        : selectedCardId === card.id && !selectionMode
+                          ? "border-accent-500 dark:border-accent-400 bg-accent-50 dark:bg-accent-900/30"
+                          : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     }`}
                   >
-                    <p className="font-medium text-slate-900 dark:text-slate-100 truncate">
-                      {getCardTitle(card.content)}
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center gap-2">
+                      {selectionMode && (
+                        <input
+                          type="checkbox"
+                          checked={selectedCardIds.has(card.id)}
+                          onChange={() => toggleCardSelection(card.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label={`Select card: ${getCardTitle(card.content)}`}
+                          className="h-4 w-4 shrink-0 rounded border-slate-300 text-accent-500 focus:ring-accent-500"
+                        />
+                      )}
+                      <p className="font-medium text-slate-900 dark:text-slate-100 truncate">
+                        {getCardTitle(card.content)}
+                      </p>
+                    </div>
+                    <div className={`flex items-center gap-2 mt-2 ${selectionMode ? "pl-6" : ""}`}>
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATE_COLORS[card.state]}`}
                       >
@@ -543,7 +791,13 @@ export default function DeckDetailPage() {
                 ref={columnDetailRef}
                 className="sm:w-2/3 min-w-0 overflow-y-auto"
               >
-                {selectedCard ? (
+                {selectionMode ? (
+                  <div className="flex items-center justify-center h-full text-slate-400">
+                    {selectedCardIds.size > 0
+                      ? `${selectedCardIds.size} card${selectedCardIds.size === 1 ? "" : "s"} selected`
+                      : "Click cards to select them"}
+                  </div>
+                ) : selectedCard ? (
                   <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div />
@@ -624,23 +878,52 @@ export default function DeckDetailPage() {
               {cards.map((card) => (
                 <div
                   key={card.id}
-                  className="group rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                  onClick={
+                    selectionMode
+                      ? () => toggleCardSelection(card.id)
+                      : undefined
+                  }
+                  className={`group rounded-lg border bg-white dark:bg-slate-800 p-5 transition-colors ${
+                    selectionMode
+                      ? "cursor-pointer"
+                      : "hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                  } ${
+                    selectionMode && selectedCardIds.has(card.id)
+                      ? "border-accent-500 dark:border-accent-400 ring-2 ring-accent-500/20"
+                      : "border-slate-200 dark:border-slate-700"
+                  }`}
                 >
                   <div className="flex items-start justify-between mb-3">
-                    <button
-                      type="button"
-                      onClick={() => setViewCardId(card.id)}
-                      className="text-sm text-slate-400 hover:text-accent-500 transition-colors"
-                    >
-                      View card →
-                    </button>
-                    <CardActions
-                      card={card}
-                      onDelete={handleDeleteCard}
-                      onToggleSuspend={handleToggleSuspend}
-                      onDuplicate={setDuplicateCard}
-                      hideUntilHover
-                    />
+                    <div className="flex items-center gap-2">
+                      {selectionMode && (
+                        <input
+                          type="checkbox"
+                          checked={selectedCardIds.has(card.id)}
+                          onChange={() => toggleCardSelection(card.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label={`Select card: ${getCardTitle(card.content)}`}
+                          className="h-4 w-4 rounded border-slate-300 text-accent-500 focus:ring-accent-500"
+                        />
+                      )}
+                      {!selectionMode && (
+                        <button
+                          type="button"
+                          onClick={() => setViewCardId(card.id)}
+                          className="text-sm text-slate-400 hover:text-accent-500 transition-colors"
+                        >
+                          View card →
+                        </button>
+                      )}
+                    </div>
+                    {!selectionMode && (
+                      <CardActions
+                        card={card}
+                        onDelete={handleDeleteCard}
+                        onToggleSuspend={handleToggleSuspend}
+                        onDuplicate={setDuplicateCard}
+                        hideUntilHover
+                      />
+                    )}
                   </div>
                   <CardFrontBack card={card} />
                   <CardMeta card={card} />
@@ -700,6 +983,121 @@ export default function DeckDetailPage() {
         targetDeckId={deckId}
         targetDeckName={deck.name}
       />
+
+      {/* Bulk Action Toolbar */}
+      {selectionMode && selectedCardIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 sm:gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg px-4 py-3">
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
+            {selectedCardIds.size} selected
+          </span>
+          <button
+            type="button"
+            onClick={() =>
+              selectedCardIds.size === cards.length
+                ? setSelectedCardIds(new Set())
+                : setSelectedCardIds(new Set(cards.map((c) => c.id)))
+            }
+            className="text-sm text-accent-500 hover:text-accent-600 dark:hover:text-accent-400 whitespace-nowrap"
+          >
+            {selectedCardIds.size === cards.length
+              ? "Deselect All"
+              : "Select All"}
+          </button>
+          <div className="w-px h-5 bg-slate-200 dark:bg-slate-700" />
+          <Tooltip label="Move to deck">
+            <button
+              type="button"
+              onClick={() => setShowBulkMoveModal(true)}
+              disabled={bulkActionLoading}
+              className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 disabled:opacity-50 transition-colors"
+              aria-label="Move cards"
+            >
+              <ArrowRightLeft className="h-4 w-4" />
+            </button>
+          </Tooltip>
+          <Tooltip label="Duplicate to deck">
+            <button
+              type="button"
+              onClick={() => setShowBulkDuplicateModal(true)}
+              disabled={bulkActionLoading}
+              className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 disabled:opacity-50 transition-colors"
+              aria-label="Duplicate cards"
+            >
+              <CopyPlus className="h-4 w-4" />
+            </button>
+          </Tooltip>
+          <Tooltip
+            label={
+              cards
+                .filter((c) => selectedCardIds.has(c.id))
+                .every((c) => c.suspended)
+                ? "Unsuspend"
+                : "Suspend"
+            }
+          >
+            <button
+              type="button"
+              onClick={handleBulkToggleSuspend}
+              disabled={bulkActionLoading}
+              className="p-2 text-slate-500 hover:text-yellow-500 disabled:opacity-50 transition-colors"
+              aria-label="Suspend or unsuspend cards"
+            >
+              {cards
+                .filter((c) => selectedCardIds.has(c.id))
+                .every((c) => c.suspended) ? (
+                <PlayCircle className="h-4 w-4" />
+              ) : (
+                <PauseCircle className="h-4 w-4" />
+              )}
+            </button>
+          </Tooltip>
+          <Tooltip label="Delete">
+            <button
+              type="button"
+              onClick={handleBulkDelete}
+              disabled={bulkActionLoading}
+              className="p-2 text-slate-500 hover:text-red-500 disabled:opacity-50 transition-colors"
+              aria-label="Delete cards"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </Tooltip>
+          <div className="w-px h-5 bg-slate-200 dark:bg-slate-700" />
+          <button
+            type="button"
+            onClick={exitSelectionMode}
+            className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 whitespace-nowrap"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {/* Bulk Move/Duplicate Modals */}
+      {userId && (
+        <>
+          <BulkCardActionModal
+            open={showBulkMoveModal}
+            onClose={() => setShowBulkMoveModal(false)}
+            onConfirm={handleBulkMove}
+            currentDeckId={deckId}
+            userId={userId}
+            cardCount={selectedCardIds.size}
+            action="move"
+            loading={bulkActionLoading}
+          />
+          <BulkCardActionModal
+            open={showBulkDuplicateModal}
+            onClose={() => setShowBulkDuplicateModal(false)}
+            onConfirm={handleBulkDuplicate}
+            currentDeckId={deckId}
+            userId={userId}
+            cardCount={selectedCardIds.size}
+            action="duplicate"
+            loading={bulkActionLoading}
+          />
+        </>
+      )}
 
       {userId && (
         <DuplicateCardModal
