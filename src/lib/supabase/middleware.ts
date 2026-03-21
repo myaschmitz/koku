@@ -39,6 +39,8 @@ export async function updateSession(request: NextRequest) {
   if (
     pathname === "/" ||
     pathname === "/login" ||
+    pathname === "/privacy" ||
+    pathname === "/terms" ||
     pathname.startsWith("/auth/")
   ) {
     // If logged in and visiting login page, redirect to decks

@@ -125,6 +125,18 @@ export default function LoginPage() {
             {message}
           </p>
         )}
+
+        <p className="text-center text-xs text-slate-400 dark:text-slate-500">
+          By continuing, you agree to our{" "}
+          <Link href="/terms" className="underline hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="underline hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </div>
     </main>
   );

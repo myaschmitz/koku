@@ -189,9 +189,17 @@ export default async function Home() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 dark:border-slate-700 py-8">
-        <p className="text-center text-sm text-slate-400 dark:text-slate-500">
-          &copy; {new Date().getFullYear()} Koku
-        </p>
+        <div className="flex items-center justify-center gap-4 text-sm text-slate-400 dark:text-slate-500">
+          <span>&copy; {new Date().getFullYear()} Koku</span>
+          <span>&middot;</span>
+          <Link href="/privacy" className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+            Privacy
+          </Link>
+          <span>&middot;</span>
+          <Link href="/terms" className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+            Terms
+          </Link>
+        </div>
       </footer>
     </div>
   );
