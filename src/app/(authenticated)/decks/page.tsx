@@ -342,38 +342,46 @@ export default function DecksPage() {
                           Study
                         </button>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => togglePin(deck.id, deck.pinned)}
-                        className={`p-1 ${deck.pinned ? "text-accent-500" : "text-slate-400"} hover:text-accent-600 dark:hover:text-accent-400`}
-                        aria-label={deck.pinned ? "Unpin" : "Pin to top"}
-                      >
-                        {deck.pinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDuplicateDeck(deck)}
-                        className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                        aria-label="Duplicate deck"
-                      >
-                        <CopyPlus className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => startEdit(deck)}
-                        className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                        aria-label="Edit deck"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(deck.id)}
-                        className="p-1 text-slate-400 hover:text-red-500"
-                        aria-label="Delete deck"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      <Tooltip label={deck.pinned ? "Unpin" : "Pin to top"}>
+                        <button
+                          type="button"
+                          onClick={() => togglePin(deck.id, deck.pinned)}
+                          className={`p-1 ${deck.pinned ? "text-accent-500" : "text-slate-400"} hover:text-accent-600 dark:hover:text-accent-400`}
+                          aria-label={deck.pinned ? "Unpin" : "Pin to top"}
+                        >
+                          {deck.pinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
+                        </button>
+                      </Tooltip>
+                      <Tooltip label="Duplicate deck">
+                        <button
+                          type="button"
+                          onClick={() => setDuplicateDeck(deck)}
+                          className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                          aria-label="Duplicate deck"
+                        >
+                          <CopyPlus className="h-3.5 w-3.5" />
+                        </button>
+                      </Tooltip>
+                      <Tooltip label="Edit deck">
+                        <button
+                          type="button"
+                          onClick={() => startEdit(deck)}
+                          className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                          aria-label="Edit deck"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                      </Tooltip>
+                      <Tooltip label="Delete deck">
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(deck.id)}
+                          className="p-1 text-slate-400 hover:text-red-500"
+                          aria-label="Delete deck"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </Tooltip>
                     </div>
                   </td>
                 </tr>
@@ -438,46 +446,58 @@ export default function DecksPage() {
                         )}
                       </div>
                       <div className="flex gap-1">
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            togglePin(deck.id, deck.pinned);
-                          }}
-                          className={`p-1 ${deck.pinned ? "text-accent-500" : "text-slate-400"} hover:text-accent-600 dark:hover:text-accent-400`}
-                          aria-label={deck.pinned ? "Unpin" : "Pin to top"}
-                        >
-                          {deck.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setDuplicateDeck(deck);
-                          }}
-                          className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                          aria-label="Duplicate deck"
-                        >
-                          <CopyPlus className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            startEdit(deck);
-                          }}
-                          className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                          aria-label="Edit deck"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleDelete(deck.id);
-                          }}
-                          className="p-1 text-slate-400 hover:text-red-500"
-                          aria-label="Delete deck"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <Tooltip label={deck.pinned ? "Unpin" : "Pin to top"}>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              togglePin(deck.id, deck.pinned);
+                            }}
+                            className={`p-1 ${deck.pinned ? "text-accent-500" : "text-slate-400"} hover:text-accent-600 dark:hover:text-accent-400`}
+                            aria-label={deck.pinned ? "Unpin" : "Pin to top"}
+                          >
+                            {deck.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+                          </button>
+                        </Tooltip>
+                        <Tooltip label="Duplicate deck">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setDuplicateDeck(deck);
+                            }}
+                            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                            aria-label="Duplicate deck"
+                          >
+                            <CopyPlus className="h-4 w-4" />
+                          </button>
+                        </Tooltip>
+                        <Tooltip label="Edit deck">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              startEdit(deck);
+                            }}
+                            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                            aria-label="Edit deck"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                        </Tooltip>
+                        <Tooltip label="Delete deck">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleDelete(deck.id);
+                            }}
+                            className="p-1 text-slate-400 hover:text-red-500"
+                            aria-label="Delete deck"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </Tooltip>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
@@ -564,46 +584,58 @@ export default function DecksPage() {
                     )}
                   </div>
                   <div className="flex gap-1">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        togglePin(deck.id, deck.pinned);
-                      }}
-                      className={`p-1 ${deck.pinned ? "text-accent-500" : "text-slate-400"} hover:text-accent-600 dark:hover:text-accent-400`}
-                      title={deck.pinned ? "Unpin" : "Pin to top"}
-                    >
-                      {deck.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setDuplicateDeck(deck);
-                      }}
-                      className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                      title="Duplicate"
-                    >
-                      <CopyPlus className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        startEdit(deck);
-                      }}
-                      className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                      title="Edit"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleDelete(deck.id);
-                      }}
-                      className="p-1 text-slate-400 hover:text-red-500"
-                      title="Delete"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <Tooltip label={deck.pinned ? "Unpin" : "Pin to top"}>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          togglePin(deck.id, deck.pinned);
+                        }}
+                        className={`p-1 ${deck.pinned ? "text-accent-500" : "text-slate-400"} hover:text-accent-600 dark:hover:text-accent-400`}
+                        title={deck.pinned ? "Unpin" : "Pin to top"}
+                      >
+                        {deck.pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+                      </button>
+                    </Tooltip>
+                    <Tooltip label="Duplicate deck">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setDuplicateDeck(deck);
+                        }}
+                        className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                        title="Duplicate"
+                      >
+                        <CopyPlus className="h-4 w-4" />
+                      </button>
+                    </Tooltip>
+                    <Tooltip label="Edit deck">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          startEdit(deck);
+                        }}
+                        className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                        title="Edit"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                    </Tooltip>
+                    <Tooltip label="Delete deck">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDelete(deck.id);
+                        }}
+                        className="p-1 text-slate-400 hover:text-red-500"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </Tooltip>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">

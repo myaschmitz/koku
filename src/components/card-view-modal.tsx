@@ -13,6 +13,7 @@ import {
   Check,
 } from "lucide-react";
 import { Markdown } from "@/components/markdown";
+import { Tooltip } from "@/components/tooltip";
 import { splitCardContent } from "@/lib/card-utils";
 import type { Card } from "@/lib/types";
 
@@ -104,62 +105,72 @@ export function CardViewModal({
               Card
             </h2>
             <div className="flex gap-1">
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                aria-label={copied ? "Copied!" : "Copy markdown"}
-              >
-                {copied ? (
-                  <Check className="h-4 w-4 text-green-500" aria-hidden="true" />
-                ) : (
-                  <Copy className="h-4 w-4" aria-hidden="true" />
-                )}
-              </button>
-              {onDuplicate && (
+              <Tooltip label={copied ? "Copied!" : "Copy markdown"}>
                 <button
                   type="button"
-                  onClick={() => {
-                    onDuplicate(card);
-                    onClose();
-                  }}
+                  onClick={handleCopy}
                   className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  aria-label="Duplicate card"
+                  aria-label={copied ? "Copied!" : "Copy markdown"}
                 >
-                  <CopyPlus className="h-4 w-4" aria-hidden="true" />
+                  {copied ? (
+                    <Check className="h-4 w-4 text-green-500" aria-hidden="true" />
+                  ) : (
+                    <Copy className="h-4 w-4" aria-hidden="true" />
+                  )}
                 </button>
+              </Tooltip>
+              {onDuplicate && (
+                <Tooltip label="Duplicate card">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onDuplicate(card);
+                      onClose();
+                    }}
+                    className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    aria-label="Duplicate card"
+                  >
+                    <CopyPlus className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </Tooltip>
               )}
-              <button
-                type="button"
-                onClick={() => onToggleSuspend(card.id, card.suspended)}
-                className={`p-1.5 rounded-md transition-colors ${
-                  card.suspended
-                    ? "text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/30"
-                    : "text-slate-400 hover:text-yellow-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
-                aria-label={card.suspended ? "Unsuspend card" : "Suspend card"}
-              >
-                {card.suspended ? (
-                  <PlayCircle className="h-4 w-4" aria-hidden="true" />
-                ) : (
-                  <PauseCircle className="h-4 w-4" aria-hidden="true" />
-                )}
-              </button>
-              <Link
-                href={`/cards/${card.id}/edit`}
-                className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                aria-label="Edit card"
-              >
-                <Pencil className="h-4 w-4" aria-hidden="true" />
-              </Link>
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                aria-label="Delete card"
-              >
-                <Trash2 className="h-4 w-4" aria-hidden="true" />
-              </button>
+              <Tooltip label={card.suspended ? "Unsuspend card" : "Suspend card"}>
+                <button
+                  type="button"
+                  onClick={() => onToggleSuspend(card.id, card.suspended)}
+                  className={`p-1.5 rounded-md transition-colors ${
+                    card.suspended
+                      ? "text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/30"
+                      : "text-slate-400 hover:text-yellow-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                  aria-label={card.suspended ? "Unsuspend card" : "Suspend card"}
+                >
+                  {card.suspended ? (
+                    <PlayCircle className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <PauseCircle className="h-4 w-4" aria-hidden="true" />
+                  )}
+                </button>
+              </Tooltip>
+              <Tooltip label="Edit card">
+                <Link
+                  href={`/cards/${card.id}/edit`}
+                  className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  aria-label="Edit card"
+                >
+                  <Pencil className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </Tooltip>
+              <Tooltip label="Delete card">
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  aria-label="Delete card"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </Tooltip>
             </div>
           </div>
           <button

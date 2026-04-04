@@ -5,12 +5,14 @@ import { useState, useRef, useEffect, useId } from "react";
 interface TooltipProps {
   label: string;
   children: React.ReactNode;
+  delay?: number;
 }
 
-export function Tooltip({ label, children }: TooltipProps) {
+export function Tooltip({ label, children, delay = 1000 }: TooltipProps) {
   const [show, setShow] = useState(false);
   const [position, setPosition] = useState<"top" | "bottom">("bottom");
   const ref = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tooltipId = useId();
 
   useEffect(() => {
@@ -21,14 +23,23 @@ export function Tooltip({ label, children }: TooltipProps) {
     }
   }, [show]);
 
+  function handleMouseEnter() {
+    timerRef.current = setTimeout(() => setShow(true), delay);
+  }
+
+  function handleMouseLeave() {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setShow(false);
+  }
+
   return (
     <div
       ref={ref}
       className="relative inline-flex"
-      onMouseEnter={() => setShow(true)}
-      onMouseLeave={() => setShow(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       onFocus={() => setShow(true)}
-      onBlur={() => setShow(false)}
+      onBlur={handleMouseLeave}
       aria-describedby={show ? tooltipId : undefined}
     >
       {children}

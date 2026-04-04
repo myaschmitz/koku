@@ -58,18 +58,20 @@ function CopyButton({ content }: { content: string }) {
     setTimeout(() => setCopied(false), 2000);
   };
   return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-      title={copied ? "Copied!" : "Copy markdown"}
-    >
-      {copied ? (
-        <Check className="h-4 w-4 text-green-500" />
-      ) : (
-        <Copy className="h-4 w-4" />
-      )}
-    </button>
+    <Tooltip label={copied ? "Copied!" : "Copy markdown"}>
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+        title={copied ? "Copied!" : "Copy markdown"}
+      >
+        {copied ? (
+          <Check className="h-4 w-4 text-green-500" />
+        ) : (
+          <Copy className="h-4 w-4" />
+        )}
+      </button>
+    </Tooltip>
   );
 }
 
@@ -91,41 +93,49 @@ function CardActions({
       className={`flex gap-1 ${hideUntilHover ? "opacity-0 group-hover:opacity-100 transition-opacity" : ""}`}
     >
       <CopyButton content={card.content} />
-      <button
-        type="button"
-        onClick={() => onDuplicate(card)}
-        className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-        title="Duplicate"
-      >
-        <CopyPlus className="h-4 w-4" />
-      </button>
-      <button
-        type="button"
-        onClick={() => onToggleSuspend(card.id, card.suspended)}
-        className={`p-1 ${card.suspended ? "text-yellow-500 hover:text-yellow-600" : "text-slate-400 hover:text-yellow-500"}`}
-        title={card.suspended ? "Unsuspend" : "Suspend"}
-      >
-        {card.suspended ? (
-          <PlayCircle className="h-4 w-4" />
-        ) : (
-          <PauseCircle className="h-4 w-4" />
-        )}
-      </button>
-      <Link
-        href={`/cards/${card.id}/edit`}
-        className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-        title="Edit"
-      >
-        <Pencil className="h-4 w-4" />
-      </Link>
-      <button
-        type="button"
-        onClick={() => onDelete(card.id)}
-        className="p-1 text-slate-400 hover:text-red-500"
-        title="Delete"
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
+      <Tooltip label="Duplicate">
+        <button
+          type="button"
+          onClick={() => onDuplicate(card)}
+          className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+          title="Duplicate"
+        >
+          <CopyPlus className="h-4 w-4" />
+        </button>
+      </Tooltip>
+      <Tooltip label={card.suspended ? "Unsuspend" : "Suspend"}>
+        <button
+          type="button"
+          onClick={() => onToggleSuspend(card.id, card.suspended)}
+          className={`p-1 ${card.suspended ? "text-yellow-500 hover:text-yellow-600" : "text-slate-400 hover:text-yellow-500"}`}
+          title={card.suspended ? "Unsuspend" : "Suspend"}
+        >
+          {card.suspended ? (
+            <PlayCircle className="h-4 w-4" />
+          ) : (
+            <PauseCircle className="h-4 w-4" />
+          )}
+        </button>
+      </Tooltip>
+      <Tooltip label="Edit">
+        <Link
+          href={`/cards/${card.id}/edit`}
+          className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+          title="Edit"
+        >
+          <Pencil className="h-4 w-4" />
+        </Link>
+      </Tooltip>
+      <Tooltip label="Delete">
+        <button
+          type="button"
+          onClick={() => onDelete(card.id)}
+          className="p-1 text-slate-400 hover:text-red-500"
+          title="Delete"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </Tooltip>
     </div>
   );
 }
@@ -803,48 +813,56 @@ export default function DeckDetailPage() {
                       <div />
                       <div className="flex gap-1">
                         <CopyButton content={selectedCard.content} />
-                        <button
-                          type="button"
-                          onClick={() => setDuplicateCard(selectedCard)}
-                          className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                          title="Duplicate"
-                        >
-                          <CopyPlus className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleToggleSuspend(
-                              selectedCard.id,
-                              selectedCard.suspended,
-                            )
-                          }
-                          className={`p-1.5 ${selectedCard.suspended ? "text-yellow-500 hover:text-yellow-600" : "text-slate-400 hover:text-yellow-500"}`}
-                          title={
-                            selectedCard.suspended ? "Unsuspend" : "Suspend"
-                          }
-                        >
-                          {selectedCard.suspended ? (
-                            <PlayCircle className="h-4 w-4" />
-                          ) : (
-                            <PauseCircle className="h-4 w-4" />
-                          )}
-                        </button>
-                        <Link
-                          href={`/cards/${selectedCard.id}/edit`}
-                          className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                          title="Edit"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteCard(selectedCard.id)}
-                          className="p-1.5 text-slate-400 hover:text-red-500"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <Tooltip label="Duplicate">
+                          <button
+                            type="button"
+                            onClick={() => setDuplicateCard(selectedCard)}
+                            className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                            title="Duplicate"
+                          >
+                            <CopyPlus className="h-4 w-4" />
+                          </button>
+                        </Tooltip>
+                        <Tooltip label={selectedCard.suspended ? "Unsuspend" : "Suspend"}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleToggleSuspend(
+                                selectedCard.id,
+                                selectedCard.suspended,
+                              )
+                            }
+                            className={`p-1.5 ${selectedCard.suspended ? "text-yellow-500 hover:text-yellow-600" : "text-slate-400 hover:text-yellow-500"}`}
+                            title={
+                              selectedCard.suspended ? "Unsuspend" : "Suspend"
+                            }
+                          >
+                            {selectedCard.suspended ? (
+                              <PlayCircle className="h-4 w-4" />
+                            ) : (
+                              <PauseCircle className="h-4 w-4" />
+                            )}
+                          </button>
+                        </Tooltip>
+                        <Tooltip label="Edit">
+                          <Link
+                            href={`/cards/${selectedCard.id}/edit`}
+                            className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Link>
+                        </Tooltip>
+                        <Tooltip label="Delete">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCard(selectedCard.id)}
+                            className="p-1.5 text-slate-400 hover:text-red-500"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </Tooltip>
                       </div>
                     </div>
 
