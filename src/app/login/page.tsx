@@ -39,6 +39,25 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900 px-4">
+      <Link
+        href="/"
+        className="absolute top-4 left-4 p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors"
+        aria-label="Back to home"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M19 12H5M12 5l-7 7 7 7" />
+        </svg>
+      </Link>
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
           <Link href="/" className="inline-block">
@@ -55,7 +74,7 @@ export default function LoginPage() {
             </h1>
           </Link>
           <p className="mt-2 text-slate-600 dark:text-slate-400">
-            Spaced repetition, simplified
+            Sign in or create an account
           </p>
         </div>
 
@@ -128,11 +147,17 @@ export default function LoginPage() {
 
         <p className="text-center text-xs text-slate-400 dark:text-slate-500">
           By continuing, you agree to our{" "}
-          <Link href="/terms" className="underline hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+          <Link
+            href="/terms"
+            className="underline hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+          >
             Terms of Service
           </Link>{" "}
           and{" "}
-          <Link href="/privacy" className="underline hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+          <Link
+            href="/privacy"
+            className="underline hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+          >
             Privacy Policy
           </Link>
           .
