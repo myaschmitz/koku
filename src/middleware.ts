@@ -7,13 +7,11 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (images, manifest, etc.)
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|json)$).*)",
+    // Only run auth middleware on protected routes; public routes and bot
+    // traffic skip it, keeping edge compute and Auth calls down.
+    "/decks/:path*",
+    "/cards/:path*",
+    "/study/:path*",
+    "/settings/:path*",
   ],
 };

@@ -2,13 +2,25 @@
 
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
+
+  // Redirect signed-in users away from login. getSession() reads the local
+  // cookie with no network call (previously handled by middleware).
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.replace("/decks");
+      }
+    });
+  }, [router, supabase]);
 
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({

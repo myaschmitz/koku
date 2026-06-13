@@ -6,6 +6,21 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
+  // No Supabase auth cookie means no session, so skip the getUser() call and
+  // send anonymous/bot traffic straight to /login.
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some(
+      (cookie) =>
+        cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token")
+    );
+
+  if (!hasAuthCookie) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -32,25 +47,6 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
-
-  // Public routes
-  if (
-    pathname === "/" ||
-    pathname === "/login" ||
-    pathname === "/privacy" ||
-    pathname === "/terms" ||
-    pathname.startsWith("/auth/")
-  ) {
-    // If logged in and visiting login page, redirect to decks
-    if (user && pathname === "/login") {
-      const url = request.nextUrl.clone();
-      url.pathname = "/decks";
-      return NextResponse.redirect(url);
-    }
-    return supabaseResponse;
-  }
 
   // Protected routes — redirect to login if not authenticated
   if (!user) {
