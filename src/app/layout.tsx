@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { Analytics } from "@vercel/analytics/next";
 import { ThemedToaster } from "@/components/themed-toaster";
 import "./globals.css";
 
@@ -86,6 +87,7 @@ export default function RootLayout({
           {children}
           <ThemedToaster />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
