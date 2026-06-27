@@ -57,9 +57,14 @@ export async function duplicateCardImages(
 
   const pathMap = new Map<string, string>();
 
+  // Dedupe before copying: under Promise.all all callbacks start before any
+  // pathMap.set runs, so an in-flight has() guard cannot prevent a repeated
+  // image from being copied multiple times. A unique set guarantees one copy
+  // per distinct source path.
+  const uniquePaths = [...new Set(imagePaths)];
+
   await Promise.all(
-    imagePaths.map(async (oldPath) => {
-      if (pathMap.has(oldPath)) return;
+    uniquePaths.map(async (oldPath) => {
       const filename = oldPath.split("/").pop() ?? oldPath;
       const newPath = `${newStoragePath}/${filename}`;
       const result = await copyStorageFile(supabase, oldPath, newPath);
