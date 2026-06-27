@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronDown, Plus, Layers, FileText, Ban } from "lucide-react";
 import type { CardTemplate } from "@/lib/types";
-import { BUILTIN_TEMPLATES, type BuiltinTemplate } from "@/lib/card-templates";
+import { BUILTIN_TEMPLATES } from "@/lib/card-templates";
 
 const ICON_MAP = {
   layers: Layers,
@@ -37,6 +37,7 @@ export function NewCardButton({
 }: NewCardButtonProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -44,9 +45,19 @@ export function NewCardButton({
         setOpen(false);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
     if (open) {
       document.addEventListener("mousedown", handleClick);
-      return () => document.removeEventListener("mousedown", handleClick);
+      document.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.removeEventListener("mousedown", handleClick);
+        document.removeEventListener("keydown", handleKeyDown);
+      };
     }
   }, [open]);
 
@@ -73,6 +84,7 @@ export function NewCardButton({
 
       {/* Dropdown arrow */}
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen(!open)}
         className={`rounded-r-lg border border-slate-300 dark:border-slate-600 px-2 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${

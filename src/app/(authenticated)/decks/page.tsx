@@ -33,60 +33,63 @@ export default function DecksPage() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     const { data: rawDecks } = await supabase
       .from("decks")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (!rawDecks) return;
+    if (!rawDecks) {
+      setLoading(false);
+      return;
+    }
 
-    const now = new Date().toISOString();
-    const decksWithCounts: DeckWithCounts[] = await Promise.all(
-      rawDecks.map(async (deck) => {
-        const { count: cardCount } = await supabase
-          .from("cards")
-          .select("*", { count: "exact", head: true })
-          .eq("deck_id", deck.id);
+    // Fetch all of the user's cards once and aggregate counts client-side,
+    // instead of issuing 4 count queries per deck (N+1).
+    const { data: cardRows } = await supabase
+      .from("cards")
+      .select("deck_id, state, suspended, due")
+      .eq("user_id", user.id);
 
-        // New cards (state=0, not suspended)
-        const { count: newCount } = await supabase
-          .from("cards")
-          .select("*", { count: "exact", head: true })
-          .eq("deck_id", deck.id)
-          .eq("suspended", false)
-          .eq("state", 0);
+    const now = Date.now();
+    const agg = new Map<
+      string,
+      { card: number; newC: number; learn: number; reviewDue: number }
+    >();
 
-        // Learning/relearning cards (state=1 or state=3, due now)
-        const { count: learnCount } = await supabase
-          .from("cards")
-          .select("*", { count: "exact", head: true })
-          .eq("deck_id", deck.id)
-          .eq("suspended", false)
-          .in("state", [1, 3])
-          .lte("due", now);
+    for (const c of cardRows ?? []) {
+      let a = agg.get(c.deck_id);
+      if (!a) {
+        a = { card: 0, newC: 0, learn: 0, reviewDue: 0 };
+        agg.set(c.deck_id, a);
+      }
+      a.card++;
+      if (c.suspended) continue;
+      const due = new Date(c.due).getTime() <= now;
+      if (c.state === 0) a.newC++;
+      else if ((c.state === 1 || c.state === 3) && due) a.learn++;
+      else if (c.state === 2 && due) a.reviewDue++;
+    }
 
-        // Review cards (state=2, due now)
-        const { count: reviewDueCount } = await supabase
-          .from("cards")
-          .select("*", { count: "exact", head: true })
-          .eq("deck_id", deck.id)
-          .eq("suspended", false)
-          .eq("state", 2)
-          .lte("due", now);
-
-        const dueCount = (newCount ?? 0) + (learnCount ?? 0) + (reviewDueCount ?? 0);
-
-        return {
-          ...deck,
-          card_count: cardCount ?? 0,
-          due_count: dueCount,
-          new_count: newCount ?? 0,
-          learn_count: learnCount ?? 0,
-        };
-      }),
-    );
+    const decksWithCounts: DeckWithCounts[] = rawDecks.map((deck) => {
+      const a = agg.get(deck.id) ?? {
+        card: 0,
+        newC: 0,
+        learn: 0,
+        reviewDue: 0,
+      };
+      return {
+        ...deck,
+        card_count: a.card,
+        due_count: a.newC + a.learn + a.reviewDue,
+        new_count: a.newC,
+        learn_count: a.learn,
+      };
+    });
 
     // Sort: pinned first, then by created_at descending
     decksWithCounts.sort((a, b) => {

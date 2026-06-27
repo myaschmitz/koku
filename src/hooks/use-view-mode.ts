@@ -11,6 +11,8 @@ export function useViewMode<T extends string>(
   useEffect(() => {
     try {
       const stored = localStorage.getItem(`${STORAGE_KEY}-${page}`);
+      // Read persisted preference after mount to avoid SSR hydration mismatch.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (stored) setViewModeState(stored as T);
     } catch {}
   }, [page]);

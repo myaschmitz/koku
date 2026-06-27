@@ -480,8 +480,10 @@ export function MarkdownEditor({
       if (imageFiles.length === 0) return;
 
       setUploading(true);
-      for (const file of imageFiles) {
-        const url = await onImageUpload(file);
+      // Upload in parallel, then insert in original order so the markdown
+      // matches the order the files were dropped/pasted.
+      const urls = await Promise.all(imageFiles.map((file) => onImageUpload(file)));
+      for (const url of urls) {
         if (url && textareaRef.current) {
           insertText(textareaRef.current, `![image](${url})\n`, onChange);
         }

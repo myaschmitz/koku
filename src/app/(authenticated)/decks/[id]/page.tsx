@@ -692,10 +692,10 @@ export default function DeckDetailPage() {
                       : setViewCardId(card.id)
                   }
                   onKeyDown={(e) => {
-                    if (e.key === "Enter")
-                      selectionMode
-                        ? toggleCardSelection(card.id)
-                        : setViewCardId(card.id);
+                    if (e.key === "Enter") {
+                      if (selectionMode) toggleCardSelection(card.id);
+                      else setViewCardId(card.id);
+                    }
                   }}
                   className={`group relative block cursor-pointer rounded-lg border bg-white dark:bg-slate-800 p-4 transition-colors ${
                     selectionMode && selectedCardIds.has(card.id)

@@ -6,6 +6,7 @@ import { CardForm, type CardFormData } from "@/components/card-form";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import { duplicateCardImages } from "@/lib/duplicate-utils";
+import { useModalA11y } from "@/hooks/use-modal-a11y";
 import type { Card, Deck } from "@/lib/types";
 
 interface DuplicateCardModalProps {
@@ -35,6 +36,8 @@ export function DuplicateCardModal({
   // Reset target deck when modal opens with a new card
   useEffect(() => {
     if (open) {
+      // Syncing the selected deck to the incoming prop when the modal opens.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTargetDeckId(currentDeckId);
       setFormKey((k) => k + 1);
     }
@@ -69,42 +72,17 @@ export function DuplicateCardModal({
     onClose();
   }, [onClose]);
 
-  const handleEscape = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (showDiscard) {
-          setShowDiscard(false);
-        } else {
-          tryClose();
-        }
+  const dialogRef = useModalA11y<HTMLDivElement>({
+    open,
+    trapEnabled: !showDiscard,
+    onEscape: () => {
+      if (showDiscard) {
+        setShowDiscard(false);
+      } else {
+        tryClose();
       }
     },
-    [tryClose, showDiscard],
-  );
-
-  useEffect(() => {
-    if (open) {
-      document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
-      const scrollY = window.scrollY;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      return () => {
-        document.removeEventListener("keydown", handleEscape);
-        document.body.style.overflow = "";
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.left = "";
-        document.body.style.right = "";
-        window.scrollTo(0, scrollY);
-      };
-    }
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [open, handleEscape]);
+  });
 
   const handleSubmit = async (data: CardFormData) => {
     const newCardId = crypto.randomUUID();
@@ -141,10 +119,12 @@ export function DuplicateCardModal({
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-[5vh]">
       <div className="fixed inset-0" onClick={tryClose} aria-hidden="true" />
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="duplicate-card-modal-title"
-        className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl"
+        className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl outline-none"
       >
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4">
           <h2

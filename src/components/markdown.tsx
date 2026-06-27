@@ -25,7 +25,6 @@ import langCss from "shiki/dist/langs/css.mjs";
 import themeGithubLight from "shiki/dist/themes/github-light.mjs";
 import themeGithubDark from "shiki/dist/themes/github-dark.mjs";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const highlighter = createHighlighterCoreSync({
   themes: [themeGithubLight, themeGithubDark],
   langs: [

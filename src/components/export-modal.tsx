@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useModalA11y } from "@/hooks/use-modal-a11y";
 import {
   exportApkg,
   exportCsv,
@@ -46,6 +47,7 @@ export function ExportModal({ open, onClose, deck }: ExportModalProps) {
   const supabase = createClient();
   const [format, setFormat] = useState<ExportFormat>("apkg");
   const [exporting, setExporting] = useState(false);
+  const dialogRef = useModalA11y<HTMLDivElement>({ open, onEscape: onClose });
 
   if (!open) return null;
 
@@ -115,10 +117,12 @@ export function ExportModal({ open, onClose, deck }: ExportModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="export-modal-title"
-        className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md mx-4"
+        className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md mx-4 outline-none"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">

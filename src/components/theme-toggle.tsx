@@ -8,6 +8,9 @@ export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
+  // Mount gate to avoid hydration mismatch — the one-time post-mount state
+  // change is intentional (next-themes pattern), not a cascading render.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   if (!mounted) {
