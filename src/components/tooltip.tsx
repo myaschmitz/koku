@@ -18,7 +18,10 @@ export function Tooltip({ label, children, delay = 1000 }: TooltipProps) {
   useEffect(() => {
     if (show && ref.current) {
       const rect = ref.current.getBoundingClientRect();
-      // If too close to the bottom of the viewport, show above
+      // If too close to the bottom of the viewport, show above.
+      // Position is derived from a post-render DOM measurement, so setting
+      // state here is required and runs only when the tooltip opens.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPosition(rect.bottom + 40 > window.innerHeight ? "top" : "bottom");
     }
   }, [show]);

@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeAll } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import path from "path";
-import initSqlJs from "sql.js";
 
 // Mock sql.js to use the actual wasm binary from node_modules instead of /sql-wasm.wasm
 vi.mock("sql.js", async () => {

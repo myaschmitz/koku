@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { CardForm, type CardFormData } from "@/components/card-form";
 import { X } from "lucide-react";
+import { toast } from "sonner";
+import { useModalA11y } from "@/hooks/use-modal-a11y";
 
 interface CreateCardModalProps {
   deckId: string;
@@ -42,43 +44,17 @@ export function CreateCardModal({
     onClose();
   }, [onClose]);
 
-  const handleEscape = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (showDiscard) {
-          setShowDiscard(false);
-        } else {
-          tryClose();
-        }
+  const dialogRef = useModalA11y<HTMLDivElement>({
+    open,
+    trapEnabled: !showDiscard,
+    onEscape: () => {
+      if (showDiscard) {
+        setShowDiscard(false);
+      } else {
+        tryClose();
       }
     },
-    [tryClose, showDiscard],
-  );
-
-  useEffect(() => {
-    if (open) {
-      document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
-      // Prevent background scroll on mobile (iOS Safari ignores overflow:hidden on body)
-      const scrollY = window.scrollY;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      return () => {
-        document.removeEventListener("keydown", handleEscape);
-        document.body.style.overflow = "";
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.left = "";
-        document.body.style.right = "";
-        window.scrollTo(0, scrollY);
-      };
-    }
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [open, handleEscape]);
+  });
 
   const checkDuplicate = async (title: string) => {
     const normalized = title.replace(/^\d+[\.\-\s]+\s*/, "").trim();
@@ -104,11 +80,13 @@ export function CreateCardModal({
         user_id: userId,
         content: data.content,
       })
-    if (!error) {
-      onCreated();
-      setDirty(false);
-      onClose();
+    if (error) {
+      toast.error("Failed to create card");
+      return;
     }
+    onCreated();
+    setDirty(false);
+    onClose();
   };
 
   if (!open) return null;
@@ -117,10 +95,12 @@ export function CreateCardModal({
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-[5vh]">
       <div className="fixed inset-0" onClick={tryClose} aria-hidden="true" />
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-card-modal-title"
-        className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl"
+        className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl outline-none"
       >
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4">
           <h2 id="create-card-modal-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100">

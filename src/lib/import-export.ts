@@ -49,10 +49,6 @@ function markdownToHtml(md: string): string {
   return html;
 }
 
-function cardToContent(front: string, back: string): string {
-  return `${front}\n\n---\n\n${back}`;
-}
-
 function contentToFrontBack(content: string): { front: string; back: string } {
   const parts = content.split("\n---\n");
   if (parts.length < 2) {

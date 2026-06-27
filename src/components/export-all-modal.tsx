@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { X, Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useModalA11y } from "@/hooks/use-modal-a11y";
 import JSZip from "jszip";
 import {
   exportApkg,
   exportCsv,
-  exportJson,
   exportAllJson,
   downloadFile,
   type ExportCard,
@@ -47,6 +47,7 @@ export function ExportAllModal({ open, onClose }: ExportAllModalProps) {
   const supabase = createClient();
   const [format, setFormat] = useState<ExportFormat>("apkg");
   const [exporting, setExporting] = useState(false);
+  const dialogRef = useModalA11y<HTMLDivElement>({ open, onEscape: onClose });
 
   if (!open) return null;
 
@@ -89,6 +90,8 @@ export function ExportAllModal({ open, onClose }: ExportAllModalProps) {
         cardsByDeck.set(card.deck_id, list);
       }
 
+      const totalCards = allCards?.length ?? 0;
+
       if (format === "json") {
         // Single JSON file with all decks
         const deckData = decks.map((deck: Deck) => ({
@@ -108,16 +111,20 @@ export function ExportAllModal({ open, onClose }: ExportAllModalProps) {
         const json = exportAllJson(deckData);
         downloadFile(json, "koku-export.json", "application/json");
       } else {
+        if (totalCards === 0) {
+          toast.error("All decks are empty, nothing to export");
+          setExporting(false);
+          return;
+        }
+
         // ZIP archive with one file per deck
         const zip = new JSZip();
-        let totalCards = 0;
 
         for (const deck of decks as Deck[]) {
           const cards = cardsByDeck.get(deck.id) ?? [];
           if (cards.length === 0) continue;
 
           const sanitizedName = deck.name.replace(/[^a-zA-Z0-9_-]/g, "_");
-          totalCards += cards.length;
 
           if (format === "apkg") {
             const exportCards: ExportCard[] = cards.map((c: Card) => ({
@@ -134,21 +141,11 @@ export function ExportAllModal({ open, onClose }: ExportAllModalProps) {
           }
         }
 
-        if (totalCards === 0) {
-          toast.error("All decks are empty, nothing to export");
-          setExporting(false);
-          return;
-        }
-
         const zipBlob = await zip.generateAsync({ type: "blob" });
         const ext = format === "apkg" ? "apkg" : "csv";
         downloadFile(zipBlob, `koku-export-${ext}.zip`, "application/zip");
       }
 
-      const totalCards = Array.from(cardsByDeck.values()).reduce(
-        (sum, cards) => sum + cards.length,
-        0,
-      );
       toast.success(
         `Exported ${decks.length} decks (${totalCards} cards) as ${FORMAT_INFO[format].ext}`,
       );
@@ -163,10 +160,12 @@ export function ExportAllModal({ open, onClose }: ExportAllModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="export-all-modal-title"
-        className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md mx-4"
+        className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md mx-4 outline-none"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">

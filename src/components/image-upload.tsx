@@ -13,7 +13,6 @@ import { ImagePlus, X, Loader2 } from "lucide-react";
 interface ImageUploadProps {
   images: string[];
   onChange: (images: string[]) => void;
-  userId: string;
   storagePath: string;
 }
 
@@ -22,7 +21,7 @@ export interface ImageUploadHandle {
 }
 
 export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
-  function ImageUpload({ images, onChange, userId, storagePath }, ref) {
+  function ImageUpload({ images, onChange, storagePath }, ref) {
     const supabase = createClient();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
@@ -89,11 +88,9 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
         setError(null);
         setUploading(true);
 
-        const urls: string[] = [];
-        for (const file of imageFiles) {
-          const url = await uploadFile(file);
-          if (url) urls.push(url);
-        }
+        // Upload in parallel; keep original order and drop any failures.
+        const results = await Promise.all(imageFiles.map(uploadFile));
+        const urls = results.filter((url): url is string => url !== null);
 
         if (urls.length > 0) {
           onChange([...images, ...urls]);
@@ -155,6 +152,9 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
           <div className="flex flex-wrap gap-2 mb-3">
             {images.map((url) => (
               <div key={url} className="relative group">
+                {/* Arbitrary user-supplied Supabase URLs; next/image would
+                    require per-host remotePatterns config. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={url}
                   alt=""

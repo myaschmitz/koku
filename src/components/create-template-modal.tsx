@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { X } from "lucide-react";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { uploadImage } from "@/lib/upload-image";
+import { useModalA11y } from "@/hooks/use-modal-a11y";
 import type { CardTemplate } from "@/lib/types";
 
 interface CreateTemplateModalProps {
@@ -24,23 +25,16 @@ export function CreateTemplateModal({
   const [name, setName] = useState("");
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
+  const dialogRef = useModalA11y<HTMLDivElement>({ open, onEscape: onClose });
 
   useEffect(() => {
     if (!open) {
+      // Reset the form when the modal closes so it's blank on next open.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setName("");
       setContent("");
     }
   }, [open]);
-
-  useEffect(() => {
-    if (open) {
-      const handleEscape = (e: KeyboardEvent) => {
-        if (e.key === "Escape") onClose();
-      };
-      document.addEventListener("keydown", handleEscape);
-      return () => document.removeEventListener("keydown", handleEscape);
-    }
-  }, [open, onClose]);
 
   const [tempId] = useState(() => crypto.randomUUID());
   const storagePath = `${userId}/${tempId}`;
@@ -82,10 +76,12 @@ export function CreateTemplateModal({
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-[5vh]">
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-template-modal-title"
-        className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl"
+        className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl outline-none"
       >
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4">
           <h2 id="create-template-modal-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100">

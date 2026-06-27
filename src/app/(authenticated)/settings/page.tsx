@@ -243,40 +243,46 @@ export default function SettingsPage() {
         vacation_started_at: now,
       });
     } else {
-      // Turn off vacation mode — shift all card due dates forward
-      const vacationStart = new Date(settings.vacation_started_at!);
-      const now = new Date();
-      const vacationMs = now.getTime() - vacationStart.getTime();
+      // Turn off vacation mode — shift all non-suspended card due dates
+      // forward by the vacation duration. Prefer a single atomic server-side
+      // RPC; fall back to client-side per-card updates if the migration that
+      // adds end_vacation_mode() hasn't been applied yet.
+      const { error: rpcError } = await supabase.rpc("end_vacation_mode");
 
-      // Fetch all non-suspended cards for this user
-      const { data: cards } = await supabase
-        .from("cards")
-        .select("id, due")
-        .eq("user_id", settings.user_id)
-        .eq("suspended", false);
+      if (rpcError) {
+        const vacationStart = new Date(settings.vacation_started_at!);
+        const vacationMs = Date.now() - vacationStart.getTime();
 
-      if (cards && cards.length > 0) {
-        // Shift each card's due date forward by the vacation duration
-        const updates = cards.map((card) => {
-          const oldDue = new Date(card.due);
-          const newDue = new Date(oldDue.getTime() + vacationMs);
-          return supabase
-            .from("cards")
-            .update({ due: newDue.toISOString() })
-            .eq("id", card.id);
-        });
-        await Promise.all(updates);
+        const { data: cards } = await supabase
+          .from("cards")
+          .select("id, due")
+          .eq("user_id", settings.user_id)
+          .eq("suspended", false);
+
+        if (cards && cards.length > 0) {
+          await Promise.all(
+            cards.map((card) =>
+              supabase
+                .from("cards")
+                .update({
+                  due: new Date(
+                    new Date(card.due).getTime() + vacationMs,
+                  ).toISOString(),
+                })
+                .eq("id", card.id),
+            ),
+          );
+        }
+
+        await supabase
+          .from("user_settings")
+          .update({
+            vacation_mode: false,
+            vacation_started_at: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", settings.user_id);
       }
-
-      const nowIso = now.toISOString();
-      await supabase
-        .from("user_settings")
-        .update({
-          vacation_mode: false,
-          vacation_started_at: null,
-          updated_at: nowIso,
-        })
-        .eq("user_id", settings.user_id);
 
       setSettings({
         ...settings,

@@ -45,6 +45,7 @@ export function CardForm({
     if (!checkDuplicate) return;
     const title = getCardTitle(content);
     if (!title || title === "Untitled") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDuplicateWarning(null);
       return;
     }

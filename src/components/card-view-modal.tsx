@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
   X,
@@ -15,6 +15,7 @@ import {
 import { Markdown } from "@/components/markdown";
 import { Tooltip } from "@/components/tooltip";
 import { splitCardContent } from "@/lib/card-utils";
+import { useModalA11y } from "@/hooks/use-modal-a11y";
 import type { Card } from "@/lib/types";
 
 const STATE_LABELS = ["New", "Learning", "Review", "Relearning"];
@@ -43,37 +44,7 @@ export function CardViewModal({
   onDuplicate,
 }: CardViewModalProps) {
   const [copied, setCopied] = useState(false);
-
-  const handleEscape = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    },
-    [onClose],
-  );
-
-  useEffect(() => {
-    if (open) {
-      document.addEventListener("keydown", handleEscape);
-      document.body.style.overflow = "hidden";
-      const scrollY = window.scrollY;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      return () => {
-        document.removeEventListener("keydown", handleEscape);
-        document.body.style.overflow = "";
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.left = "";
-        document.body.style.right = "";
-        window.scrollTo(0, scrollY);
-      };
-    }
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [open, handleEscape]);
+  const dialogRef = useModalA11y<HTMLDivElement>({ open, onEscape: onClose });
 
   if (!open || !card) return null;
 
@@ -94,10 +65,12 @@ export function CardViewModal({
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-[5vh]">
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="card-view-modal-title"
-        className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl"
+        className="relative w-full max-w-2xl rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl outline-none"
       >
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4">
           <div className="flex items-center gap-3">

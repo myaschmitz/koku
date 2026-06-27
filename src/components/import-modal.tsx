@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { Upload, X, FileText, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useModalA11y } from "@/hooks/use-modal-a11y";
 import {
   importApkg,
   importCsv,
@@ -37,6 +38,10 @@ export function ImportModal({
     file: File;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const dialogRef = useModalA11y<HTMLDivElement>({
+    open,
+    onEscape: () => handleClose(),
+  });
 
   if (!open) return null;
 
@@ -175,10 +180,12 @@ export function ImportModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="import-modal-title"
-        className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col"
+        className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col outline-none"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
