@@ -27,12 +27,18 @@ export function DuplicateDeckModal({
   const [description, setDescription] = useState("");
   const [duplicating, setDuplicating] = useState(false);
 
-  useEffect(() => {
+  // Initialize the form fields when the modal opens for a deck. Adjusting
+  // state during render (keyed on the open deck's id) is the React-recommended
+  // alternative to a prop-syncing effect and avoids an extra render pass.
+  const openDeckId = open && deck ? deck.id : null;
+  const [prevOpenDeckId, setPrevOpenDeckId] = useState<string | null>(null);
+  if (openDeckId !== prevOpenDeckId) {
+    setPrevOpenDeckId(openDeckId);
     if (open && deck) {
       setName(`Copy of ${deck.name}`);
       setDescription(deck.description ?? "");
     }
-  }, [open, deck]);
+  }
 
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
