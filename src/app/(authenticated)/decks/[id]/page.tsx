@@ -235,6 +235,11 @@ export default function DeckDetailPage() {
     [userTemplates],
   );
 
+  const exitSelectionMode = useCallback(() => {
+    setSelectionMode(false);
+    setSelectedCardIds(new Set());
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -263,7 +268,7 @@ export default function DeckDetailPage() {
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showCreateModal, defaultTemplateId, handleTemplateSelect, selectionMode, showBulkMoveModal, showBulkDuplicateModal]);
+  }, [showCreateModal, defaultTemplateId, handleTemplateSelect, selectionMode, showBulkMoveModal, showBulkDuplicateModal, exitSelectionMode]);
 
   const refreshCards = useCallback(async () => {
     const { data: cardsData } = await supabase
@@ -362,11 +367,6 @@ export default function DeckDetailPage() {
       .eq("suspended", false)
       .lte("due", now);
     setDueCount(count ?? 0);
-  };
-
-  const exitSelectionMode = () => {
-    setSelectionMode(false);
-    setSelectedCardIds(new Set());
   };
 
   const toggleCardSelection = (id: string) => {
